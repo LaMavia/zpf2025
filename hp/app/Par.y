@@ -75,6 +75,7 @@ TypeArg
   : UIdent { (fst $1, Abs.TALit (fst $1) (snd $1)) }
   | LIdent { (fst $1, Abs.TAGen (fst $1) (snd $1)) }
   | '[' TypeArg ']' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TAList (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
+  | TypeArg '(' ListTypeArg ')' { (fst $1, Abs.TAApp (fst $1) (snd $1) (snd $3)) }
 
 ListTypeArg :: { (Abs.BNFC'Position, [Abs.TypeArg]) }
 ListTypeArg

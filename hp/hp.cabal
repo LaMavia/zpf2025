@@ -74,6 +74,7 @@ executable hp
                     , mtl ^>= 2.3.1 
                     , transformers ^>= 0.6.2.0
                     , containers ^>= 0.8
+                    , pretty-simple ^>=4.1.2.0                
     
     other-modules:    Abs
                     , Print
@@ -82,6 +83,8 @@ executable hp
                     , Par
                     -- own
                     , Bundler
+                    , Transformer
+                    , QQ
 
     -- Directories containing source files.
     hs-source-dirs:   app

@@ -161,6 +161,7 @@ instance Print (Abs.TypeArg' a) where
     Abs.TALit _ uident -> prPrec i 0 (concatD [prt 0 uident])
     Abs.TAGen _ lident -> prPrec i 0 (concatD [prt 0 lident])
     Abs.TAList _ typearg -> prPrec i 0 (concatD [doc (showString "["), prt 0 typearg, doc (showString "]")])
+    Abs.TAApp _ typearg typeargs -> prPrec i 0 (concatD [prt 0 typearg, doc (showString "("), prt 0 typeargs, doc (showString ")")])
 
 instance Print [Abs.TypeArg' a] where
   prt _ [] = concatD []

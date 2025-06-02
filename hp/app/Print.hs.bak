@@ -141,8 +141,6 @@ instance Print Abs.UIdent where
   prt _ (Abs.UIdent i) = doc $ showString i
 instance Print Abs.LIdent where
   prt _ (Abs.LIdent i) = doc $ showString i
-instance Print Abs.Identifier where
-  prt _ (Abs.Identifier i) = doc $ showString i
 instance Print (Abs.Program' a) where
   prt i = \case
     Abs.Program _ defs -> prPrec i 0 (concatD [prt 0 defs])
@@ -160,8 +158,10 @@ instance Print (Abs.Def' a) where
 
 instance Print (Abs.TypeArg' a) where
   prt i = \case
-    Abs.TALit _ identifier -> prPrec i 0 (concatD [prt 0 identifier])
+    Abs.TALit _ uident -> prPrec i 0 (concatD [prt 0 uident])
+    Abs.TAGen _ lident -> prPrec i 0 (concatD [prt 0 lident])
     Abs.TAList _ typearg -> prPrec i 0 (concatD [doc (showString "["), prt 0 typearg, doc (showString "]")])
+    Abs.TAApp _ typearg typeargs -> prPrec i 0 (concatD [doc (showString "@"), prt 0 typearg, doc (showString "("), prt 0 typeargs, doc (showString ")")])
 
 instance Print [Abs.TypeArg' a] where
   prt _ [] = concatD []

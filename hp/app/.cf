@@ -9,6 +9,7 @@ TDef. Def ::= ".decl" LIdent "(" [TypeArg] "|" [TypeArg] ")" ;
 TALit. TypeArg ::= UIdent ;
 TAGen. TypeArg ::= LIdent ;
 TAList. TypeArg ::= "[" TypeArg "]" ;
+TAApp. TypeArg ::= TypeArg "(" [TypeArg] ")" ;
 separator TypeArg "," ;
 
 DFact. Def ::= DeclHeader ;

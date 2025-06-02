@@ -31,7 +31,10 @@ data Def' a
 
 type TypeArg = TypeArg' BNFC'Position
 data TypeArg' a
-    = TALit a UIdent | TAGen a LIdent | TAList a (TypeArg' a)
+    = TALit a UIdent
+    | TAGen a LIdent
+    | TAList a (TypeArg' a)
+    | TAApp a (TypeArg' a) [TypeArg' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type DeclHeader = DeclHeader' BNFC'Position
@@ -92,6 +95,7 @@ instance HasPosition TypeArg where
     TALit p _ -> p
     TAGen p _ -> p
     TAList p _ -> p
+    TAApp p _ _ -> p
 
 instance HasPosition DeclHeader where
   hasPosition = \case

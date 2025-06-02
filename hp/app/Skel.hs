@@ -38,6 +38,7 @@ transTypeArg x = case x of
   Abs.TALit _ uident -> failure x
   Abs.TAGen _ lident -> failure x
   Abs.TAList _ typearg -> failure x
+  Abs.TAApp _ typearg typeargs -> failure x
 
 transDeclHeader :: Show a => Abs.DeclHeader' a -> Result
 transDeclHeader x = case x of

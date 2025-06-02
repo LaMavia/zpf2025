@@ -22,15 +22,11 @@ except ``"`` unless preceded by ``\``.
 
 
 
-
 UIdent literals are recognized by the regular expression
 `````upper ('_' | digit | letter)*`````
 
 LIdent literals are recognized by the regular expression
 `````lower ('_' | digit | letter)*`````
-
-Identifier literals are recognized by the regular expression
-`````char ('_' | digit | letter)*`````
 
 
 ===Reserved words and symbols===
@@ -41,8 +37,9 @@ The reserved words used in  are the following:
 
 The symbols used in  are the following:
   | . | .decl | ( | |
-  | ) | [ | ] | ,
-  | :- | = | _ | :
+  | ) | [ | ] | @
+  | , | :- | = | _
+  | : |  |  |
 
 ===Comments===
 Single-line comments begin with %.There are no multiple-line comments in the grammar.
@@ -59,8 +56,10 @@ All other symbols are terminals.
   | //Def// | -> | ``.decl`` //LIdent// ``(`` //[TypeArg]// ``|`` //[TypeArg]// ``)``
   |  |  **|**  | //DeclHeader//
   |  |  **|**  | //DeclHeader// ``:-`` //[Stmt]//
-  | //TypeArg// | -> | //Identifier//
+  | //TypeArg// | -> | //UIdent//
+  |  |  **|**  | //LIdent//
   |  |  **|**  | ``[`` //TypeArg// ``]``
+  |  |  **|**  | ``@`` //TypeArg// ``(`` //[TypeArg]// ``)``
   | //[TypeArg]// | -> | **eps**
   |  |  **|**  | //TypeArg//
   |  |  **|**  | //TypeArg// ``,`` //[TypeArg]//

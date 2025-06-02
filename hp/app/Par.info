@@ -20,26 +20,27 @@ Grammar
 	TypeArg -> UIdent                                  (11)
 	TypeArg -> LIdent                                  (12)
 	TypeArg -> '[' TypeArg ']'                         (13)
-	ListTypeArg ->                                     (14)
-	ListTypeArg -> TypeArg                             (15)
-	ListTypeArg -> TypeArg ',' ListTypeArg             (16)
-	DeclHeader -> LIdent '(' ListTerm ')'              (17)
-	Stmt -> 'True'                                     (18)
-	Stmt -> 'False'                                    (19)
-	Stmt -> LIdent '(' ListTerm ')'                    (20)
-	Stmt -> UIdent '=' Term                            (21)
-	Term -> String                                     (22)
-	Term -> Integer                                    (23)
-	Term -> UIdent                                     (24)
-	Term -> '_'                                        (25)
-	Term -> '[' ListTerm ']'                           (26)
-	Term -> '(' Term ':' Term ')'                      (27)
-	ListTerm ->                                        (28)
-	ListTerm -> Term                                   (29)
-	ListTerm -> Term ',' ListTerm                      (30)
-	ListStmt ->                                        (31)
-	ListStmt -> Stmt                                   (32)
-	ListStmt -> Stmt ',' ListStmt                      (33)
+	TypeArg -> TypeArg '(' ListTypeArg ')'             (14)
+	ListTypeArg ->                                     (15)
+	ListTypeArg -> TypeArg                             (16)
+	ListTypeArg -> TypeArg ',' ListTypeArg             (17)
+	DeclHeader -> LIdent '(' ListTerm ')'              (18)
+	Stmt -> 'True'                                     (19)
+	Stmt -> 'False'                                    (20)
+	Stmt -> LIdent '(' ListTerm ')'                    (21)
+	Stmt -> UIdent '=' Term                            (22)
+	Term -> String                                     (23)
+	Term -> Integer                                    (24)
+	Term -> UIdent                                     (25)
+	Term -> '_'                                        (26)
+	Term -> '[' ListTerm ']'                           (27)
+	Term -> '(' Term ':' Term ')'                      (28)
+	ListTerm ->                                        (29)
+	ListTerm -> Term                                   (30)
+	ListTerm -> Term ',' ListTerm                      (31)
+	ListStmt ->                                        (32)
+	ListStmt -> Stmt                                   (33)
+	ListStmt -> Stmt ',' ListStmt                      (34)
 
 -----------------------------------------------------------------------------
 Terminals
@@ -74,13 +75,13 @@ Non-terminals
 	Program         rule  5
 	ListDef         rules 6, 7
 	Def             rules 8, 9, 10
-	TypeArg         rules 11, 12, 13
-	ListTypeArg     rules 14, 15, 16
-	DeclHeader      rule  17
-	Stmt            rules 18, 19, 20, 21
-	Term            rules 22, 23, 24, 25, 26, 27
-	ListTerm        rules 28, 29, 30
-	ListStmt        rules 31, 32, 33
+	TypeArg         rules 11, 12, 13, 14
+	ListTypeArg     rules 15, 16, 17
+	DeclHeader      rule  18
+	Stmt            rules 19, 20, 21, 22
+	Term            rules 23, 24, 25, 26, 27, 28
+	ListTerm        rules 29, 30, 31
+	ListStmt        rules 32, 33, 34
 
 -----------------------------------------------------------------------------
 States
@@ -118,7 +119,7 @@ State 2
 
 State 3
 
-	DeclHeader -> LIdent . '(' ListTerm ')'             (rule 17)
+	DeclHeader -> LIdent . '(' ListTerm ')'             (rule 18)
 
 	'('            shift, and enter state 13
 
@@ -184,7 +185,7 @@ State 11
 
 	Def -> DeclHeader ':-' . ListStmt                   (rule 10)
 
-	'.'            reduce using rule 31
+	'.'            reduce using rule 32
 	'False'        shift, and enter state 29
 	'True'         shift, and enter state 30
 	L_UIdent       shift, and enter state 23
@@ -211,10 +212,10 @@ State 12
 
 State 13
 
-	DeclHeader -> LIdent '(' . ListTerm ')'             (rule 17)
+	DeclHeader -> LIdent '(' . ListTerm ')'             (rule 18)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 28
+	')'            reduce using rule 29
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -229,29 +230,7 @@ State 13
 
 State 14
 
-	Term -> Integer .                                   (rule 23)
-
-	')'            reduce using rule 23
-	','            reduce using rule 23
-	'.'            reduce using rule 23
-	':'            reduce using rule 23
-	']'            reduce using rule 23
-
-
-State 15
-
-	Term -> String .                                    (rule 22)
-
-	')'            reduce using rule 22
-	','            reduce using rule 22
-	'.'            reduce using rule 22
-	':'            reduce using rule 22
-	']'            reduce using rule 22
-
-
-State 16
-
-	Term -> UIdent .                                    (rule 24)
+	Term -> Integer .                                   (rule 24)
 
 	')'            reduce using rule 24
 	','            reduce using rule 24
@@ -260,26 +239,48 @@ State 16
 	']'            reduce using rule 24
 
 
+State 15
+
+	Term -> String .                                    (rule 23)
+
+	')'            reduce using rule 23
+	','            reduce using rule 23
+	'.'            reduce using rule 23
+	':'            reduce using rule 23
+	']'            reduce using rule 23
+
+
+State 16
+
+	Term -> UIdent .                                    (rule 25)
+
+	')'            reduce using rule 25
+	','            reduce using rule 25
+	'.'            reduce using rule 25
+	':'            reduce using rule 25
+	']'            reduce using rule 25
+
+
 State 17
 
-	ListTerm -> Term .                                  (rule 29)
-	ListTerm -> Term . ',' ListTerm                     (rule 30)
+	ListTerm -> Term .                                  (rule 30)
+	ListTerm -> Term . ',' ListTerm                     (rule 31)
 
-	')'            reduce using rule 29
+	')'            reduce using rule 30
 	','            shift, and enter state 43
-	']'            reduce using rule 29
+	']'            reduce using rule 30
 
 
 State 18
 
-	DeclHeader -> LIdent '(' ListTerm . ')'             (rule 17)
+	DeclHeader -> LIdent '(' ListTerm . ')'             (rule 18)
 
 	')'            shift, and enter state 42
 
 
 State 19
 
-	Term -> '(' . Term ':' Term ')'                     (rule 27)
+	Term -> '(' . Term ':' Term ')'                     (rule 28)
 
 	'('            shift, and enter state 19
 	'['            shift, and enter state 20
@@ -295,11 +296,11 @@ State 19
 
 State 20
 
-	Term -> '[' . ListTerm ']'                          (rule 26)
+	Term -> '[' . ListTerm ']'                          (rule 27)
 
 	'('            shift, and enter state 19
 	'['            shift, and enter state 20
-	']'            reduce using rule 28
+	']'            reduce using rule 29
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
 	L_quoted       shift, and enter state 22
@@ -313,13 +314,13 @@ State 20
 
 State 21
 
-	Term -> '_' .                                       (rule 25)
+	Term -> '_' .                                       (rule 26)
 
-	')'            reduce using rule 25
-	','            reduce using rule 25
-	'.'            reduce using rule 25
-	':'            reduce using rule 25
-	']'            reduce using rule 25
+	')'            reduce using rule 26
+	','            reduce using rule 26
+	'.'            reduce using rule 26
+	':'            reduce using rule 26
+	']'            reduce using rule 26
 
 
 State 22
@@ -337,6 +338,7 @@ State 23
 
 	UIdent -> L_UIdent .                                (rule 3)
 
+	'('            reduce using rule 3
 	')'            reduce using rule 3
 	','            reduce using rule 3
 	'.'            reduce using rule 3
@@ -355,25 +357,25 @@ State 24
 
 State 25
 
-	Stmt -> UIdent . '=' Term                           (rule 21)
+	Stmt -> UIdent . '=' Term                           (rule 22)
 
 	'='            shift, and enter state 39
 
 
 State 26
 
-	Stmt -> LIdent . '(' ListTerm ')'                   (rule 20)
+	Stmt -> LIdent . '(' ListTerm ')'                   (rule 21)
 
 	'('            shift, and enter state 38
 
 
 State 27
 
-	ListStmt -> Stmt .                                  (rule 32)
-	ListStmt -> Stmt . ',' ListStmt                     (rule 33)
+	ListStmt -> Stmt .                                  (rule 33)
+	ListStmt -> Stmt . ',' ListStmt                     (rule 34)
 
 	','            shift, and enter state 37
-	'.'            reduce using rule 32
+	'.'            reduce using rule 33
 
 
 State 28
@@ -385,18 +387,18 @@ State 28
 
 State 29
 
-	Stmt -> 'False' .                                   (rule 19)
+	Stmt -> 'False' .                                   (rule 20)
 
-	','            reduce using rule 19
-	'.'            reduce using rule 19
+	','            reduce using rule 20
+	'.'            reduce using rule 20
 
 
 State 30
 
-	Stmt -> 'True' .                                    (rule 18)
+	Stmt -> 'True' .                                    (rule 19)
 
-	','            reduce using rule 18
-	'.'            reduce using rule 18
+	','            reduce using rule 19
+	'.'            reduce using rule 19
 
 
 State 31
@@ -404,7 +406,7 @@ State 31
 	Def -> '.decl' LIdent '(' . ListTypeArg '|' ListTypeArg ')'    (rule 8)
 
 	'['            shift, and enter state 36
-	'|'            reduce using rule 14
+	'|'            reduce using rule 15
 	L_UIdent       shift, and enter state 23
 	L_LIdent       shift, and enter state 9
 
@@ -417,6 +419,7 @@ State 32
 
 	TypeArg -> UIdent .                                 (rule 11)
 
+	'('            reduce using rule 11
 	')'            reduce using rule 11
 	','            reduce using rule 11
 	']'            reduce using rule 11
@@ -427,6 +430,7 @@ State 33
 
 	TypeArg -> LIdent .                                 (rule 12)
 
+	'('            reduce using rule 12
 	')'            reduce using rule 12
 	','            reduce using rule 12
 	']'            reduce using rule 12
@@ -435,12 +439,14 @@ State 33
 
 State 34
 
-	ListTypeArg -> TypeArg .                            (rule 15)
-	ListTypeArg -> TypeArg . ',' ListTypeArg            (rule 16)
+	TypeArg -> TypeArg . '(' ListTypeArg ')'            (rule 14)
+	ListTypeArg -> TypeArg .                            (rule 16)
+	ListTypeArg -> TypeArg . ',' ListTypeArg            (rule 17)
 
-	')'            reduce using rule 15
-	','            shift, and enter state 52
-	'|'            reduce using rule 15
+	'('            shift, and enter state 52
+	')'            reduce using rule 16
+	','            shift, and enter state 53
+	'|'            reduce using rule 16
 
 
 State 35
@@ -464,9 +470,9 @@ State 36
 
 State 37
 
-	ListStmt -> Stmt ',' . ListStmt                     (rule 33)
+	ListStmt -> Stmt ',' . ListStmt                     (rule 34)
 
-	'.'            reduce using rule 31
+	'.'            reduce using rule 32
 	'False'        shift, and enter state 29
 	'True'         shift, and enter state 30
 	L_UIdent       shift, and enter state 23
@@ -479,10 +485,10 @@ State 37
 
 State 38
 
-	Stmt -> LIdent '(' . ListTerm ')'                   (rule 20)
+	Stmt -> LIdent '(' . ListTerm ')'                   (rule 21)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 28
+	')'            reduce using rule 29
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -497,7 +503,7 @@ State 38
 
 State 39
 
-	Stmt -> UIdent '=' . Term                           (rule 21)
+	Stmt -> UIdent '=' . Term                           (rule 22)
 
 	'('            shift, and enter state 19
 	'['            shift, and enter state 20
@@ -513,34 +519,34 @@ State 39
 
 State 40
 
-	Term -> '[' ListTerm . ']'                          (rule 26)
+	Term -> '[' ListTerm . ']'                          (rule 27)
 
 	']'            shift, and enter state 46
 
 
 State 41
 
-	Term -> '(' Term . ':' Term ')'                     (rule 27)
+	Term -> '(' Term . ':' Term ')'                     (rule 28)
 
 	':'            shift, and enter state 45
 
 
 State 42
 
-	DeclHeader -> LIdent '(' ListTerm ')' .             (rule 17)
+	DeclHeader -> LIdent '(' ListTerm ')' .             (rule 18)
 
-	'.'            reduce using rule 17
-	':-'           reduce using rule 17
+	'.'            reduce using rule 18
+	':-'           reduce using rule 18
 
 
 State 43
 
-	ListTerm -> Term ',' . ListTerm                     (rule 30)
+	ListTerm -> Term ',' . ListTerm                     (rule 31)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 28
+	')'            reduce using rule 29
 	'['            shift, and enter state 20
-	']'            reduce using rule 28
+	']'            reduce using rule 29
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
 	L_quoted       shift, and enter state 22
@@ -554,15 +560,15 @@ State 43
 
 State 44
 
-	ListTerm -> Term ',' ListTerm .                     (rule 30)
+	ListTerm -> Term ',' ListTerm .                     (rule 31)
 
-	')'            reduce using rule 30
-	']'            reduce using rule 30
+	')'            reduce using rule 31
+	']'            reduce using rule 31
 
 
 State 45
 
-	Term -> '(' Term ':' . Term ')'                     (rule 27)
+	Term -> '(' Term ':' . Term ')'                     (rule 28)
 
 	'('            shift, and enter state 19
 	'['            shift, and enter state 20
@@ -574,120 +580,11 @@ State 45
 	Integer        goto state 14
 	String         goto state 15
 	UIdent         goto state 16
-	Term           goto state 57
+	Term           goto state 59
 
 State 46
 
-	Term -> '[' ListTerm ']' .                          (rule 26)
-
-	')'            reduce using rule 26
-	','            reduce using rule 26
-	'.'            reduce using rule 26
-	':'            reduce using rule 26
-	']'            reduce using rule 26
-
-
-State 47
-
-	Stmt -> UIdent '=' Term .                           (rule 21)
-
-	','            reduce using rule 21
-	'.'            reduce using rule 21
-
-
-State 48
-
-	Stmt -> LIdent '(' ListTerm . ')'                   (rule 20)
-
-	')'            shift, and enter state 56
-
-
-State 49
-
-	ListStmt -> Stmt ',' ListStmt .                     (rule 33)
-
-	'.'            reduce using rule 33
-
-
-State 50
-
-	TypeArg -> '[' TypeArg . ']'                        (rule 13)
-
-	']'            shift, and enter state 55
-
-
-State 51
-
-	Def -> '.decl' LIdent '(' ListTypeArg '|' . ListTypeArg ')'    (rule 8)
-
-	')'            reduce using rule 14
-	'['            shift, and enter state 36
-	L_UIdent       shift, and enter state 23
-	L_LIdent       shift, and enter state 9
-
-	UIdent         goto state 32
-	LIdent         goto state 33
-	TypeArg        goto state 34
-	ListTypeArg    goto state 54
-
-State 52
-
-	ListTypeArg -> TypeArg ',' . ListTypeArg            (rule 16)
-
-	')'            reduce using rule 14
-	'['            shift, and enter state 36
-	'|'            reduce using rule 14
-	L_UIdent       shift, and enter state 23
-	L_LIdent       shift, and enter state 9
-
-	UIdent         goto state 32
-	LIdent         goto state 33
-	TypeArg        goto state 34
-	ListTypeArg    goto state 53
-
-State 53
-
-	ListTypeArg -> TypeArg ',' ListTypeArg .            (rule 16)
-
-	')'            reduce using rule 16
-	'|'            reduce using rule 16
-
-
-State 54
-
-	Def -> '.decl' LIdent '(' ListTypeArg '|' ListTypeArg . ')'    (rule 8)
-
-	')'            shift, and enter state 59
-
-
-State 55
-
-	TypeArg -> '[' TypeArg ']' .                        (rule 13)
-
-	')'            reduce using rule 13
-	','            reduce using rule 13
-	']'            reduce using rule 13
-	'|'            reduce using rule 13
-
-
-State 56
-
-	Stmt -> LIdent '(' ListTerm ')' .                   (rule 20)
-
-	','            reduce using rule 20
-	'.'            reduce using rule 20
-
-
-State 57
-
-	Term -> '(' Term ':' Term . ')'                     (rule 27)
-
-	')'            shift, and enter state 58
-
-
-State 58
-
-	Term -> '(' Term ':' Term ')' .                     (rule 27)
+	Term -> '[' ListTerm ']' .                          (rule 27)
 
 	')'            reduce using rule 27
 	','            reduce using rule 27
@@ -696,17 +593,161 @@ State 58
 	']'            reduce using rule 27
 
 
+State 47
+
+	Stmt -> UIdent '=' Term .                           (rule 22)
+
+	','            reduce using rule 22
+	'.'            reduce using rule 22
+
+
+State 48
+
+	Stmt -> LIdent '(' ListTerm . ')'                   (rule 21)
+
+	')'            shift, and enter state 58
+
+
+State 49
+
+	ListStmt -> Stmt ',' ListStmt .                     (rule 34)
+
+	'.'            reduce using rule 34
+
+
+State 50
+
+	TypeArg -> '[' TypeArg . ']'                        (rule 13)
+	TypeArg -> TypeArg . '(' ListTypeArg ')'            (rule 14)
+
+	'('            shift, and enter state 52
+	']'            shift, and enter state 57
+
+
+State 51
+
+	Def -> '.decl' LIdent '(' ListTypeArg '|' . ListTypeArg ')'    (rule 8)
+
+	')'            reduce using rule 15
+	'['            shift, and enter state 36
+	L_UIdent       shift, and enter state 23
+	L_LIdent       shift, and enter state 9
+
+	UIdent         goto state 32
+	LIdent         goto state 33
+	TypeArg        goto state 34
+	ListTypeArg    goto state 56
+
+State 52
+
+	TypeArg -> TypeArg '(' . ListTypeArg ')'            (rule 14)
+
+	')'            reduce using rule 15
+	'['            shift, and enter state 36
+	L_UIdent       shift, and enter state 23
+	L_LIdent       shift, and enter state 9
+
+	UIdent         goto state 32
+	LIdent         goto state 33
+	TypeArg        goto state 34
+	ListTypeArg    goto state 55
+
+State 53
+
+	ListTypeArg -> TypeArg ',' . ListTypeArg            (rule 17)
+
+	')'            reduce using rule 15
+	'['            shift, and enter state 36
+	'|'            reduce using rule 15
+	L_UIdent       shift, and enter state 23
+	L_LIdent       shift, and enter state 9
+
+	UIdent         goto state 32
+	LIdent         goto state 33
+	TypeArg        goto state 34
+	ListTypeArg    goto state 54
+
+State 54
+
+	ListTypeArg -> TypeArg ',' ListTypeArg .            (rule 17)
+
+	')'            reduce using rule 17
+	'|'            reduce using rule 17
+
+
+State 55
+
+	TypeArg -> TypeArg '(' ListTypeArg . ')'            (rule 14)
+
+	')'            shift, and enter state 62
+
+
+State 56
+
+	Def -> '.decl' LIdent '(' ListTypeArg '|' ListTypeArg . ')'    (rule 8)
+
+	')'            shift, and enter state 61
+
+
+State 57
+
+	TypeArg -> '[' TypeArg ']' .                        (rule 13)
+
+	'('            reduce using rule 13
+	')'            reduce using rule 13
+	','            reduce using rule 13
+	']'            reduce using rule 13
+	'|'            reduce using rule 13
+
+
+State 58
+
+	Stmt -> LIdent '(' ListTerm ')' .                   (rule 21)
+
+	','            reduce using rule 21
+	'.'            reduce using rule 21
+
+
 State 59
+
+	Term -> '(' Term ':' Term . ')'                     (rule 28)
+
+	')'            shift, and enter state 60
+
+
+State 60
+
+	Term -> '(' Term ':' Term ')' .                     (rule 28)
+
+	')'            reduce using rule 28
+	','            reduce using rule 28
+	'.'            reduce using rule 28
+	':'            reduce using rule 28
+	']'            reduce using rule 28
+
+
+State 61
 
 	Def -> '.decl' LIdent '(' ListTypeArg '|' ListTypeArg ')' .    (rule 8)
 
 	'.'            reduce using rule 8
 
 
+State 62
+
+	TypeArg -> TypeArg '(' ListTypeArg ')' .            (rule 14)
+
+	'('            reduce using rule 14
+	')'            reduce using rule 14
+	','            reduce using rule 14
+	']'            reduce using rule 14
+	'|'            reduce using rule 14
+
+
 -----------------------------------------------------------------------------
 Grammar Totals
 -----------------------------------------------------------------------------
-Number of rules: 34
+Number of rules: 35
 Number of terminals: 18
 Number of non-terminals: 15
-Number of states: 60
+Number of states: 63

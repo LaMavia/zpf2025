@@ -23,25 +23,25 @@ import Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('          { PT _ (TS _ 1)         }
-  ')'          { PT _ (TS _ 2)         }
-  ','          { PT _ (TS _ 3)         }
-  '.'          { PT _ (TS _ 4)         }
-  '.decl'      { PT _ (TS _ 5)         }
-  ':'          { PT _ (TS _ 6)         }
-  ':-'         { PT _ (TS _ 7)         }
-  '='          { PT _ (TS _ 8)         }
-  'False'      { PT _ (TS _ 9)         }
-  'True'       { PT _ (TS _ 10)        }
-  '['          { PT _ (TS _ 11)        }
-  ']'          { PT _ (TS _ 12)        }
-  '_'          { PT _ (TS _ 13)        }
-  '|'          { PT _ (TS _ 14)        }
-  L_integ      { PT _ (TI _)           }
-  L_quoted     { PT _ (TL _)           }
-  L_UIdent     { PT _ (T_UIdent _)     }
-  L_LIdent     { PT _ (T_LIdent _)     }
-  L_Identifier { PT _ (T_Identifier _) }
+  '('      { PT _ (TS _ 1)     }
+  ')'      { PT _ (TS _ 2)     }
+  ','      { PT _ (TS _ 3)     }
+  '.'      { PT _ (TS _ 4)     }
+  '.decl'  { PT _ (TS _ 5)     }
+  ':'      { PT _ (TS _ 6)     }
+  ':-'     { PT _ (TS _ 7)     }
+  '='      { PT _ (TS _ 8)     }
+  '@'      { PT _ (TS _ 9)     }
+  'False'  { PT _ (TS _ 10)    }
+  'True'   { PT _ (TS _ 11)    }
+  '['      { PT _ (TS _ 12)    }
+  ']'      { PT _ (TS _ 13)    }
+  '_'      { PT _ (TS _ 14)    }
+  '|'      { PT _ (TS _ 15)    }
+  L_integ  { PT _ (TI _)       }
+  L_quoted { PT _ (TL _)       }
+  L_UIdent { PT _ (T_UIdent _) }
+  L_LIdent { PT _ (T_LIdent _) }
 
 %%
 
@@ -56,9 +56,6 @@ UIdent  : L_UIdent { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.UIdent (t
 
 LIdent :: { (Abs.BNFC'Position, Abs.LIdent) }
 LIdent  : L_LIdent { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.LIdent (tokenText $1)) }
-
-Identifier :: { (Abs.BNFC'Position, Abs.Identifier) }
-Identifier  : L_Identifier { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Identifier (tokenText $1)) }
 
 Program :: { (Abs.BNFC'Position, Abs.Program) }
 Program : ListDef { (fst $1, Abs.Program (fst $1) (snd $1)) }
@@ -76,8 +73,10 @@ Def
 
 TypeArg :: { (Abs.BNFC'Position, Abs.TypeArg) }
 TypeArg
-  : Identifier { (fst $1, Abs.TALit (fst $1) (snd $1)) }
+  : UIdent { (fst $1, Abs.TALit (fst $1) (snd $1)) }
+  | LIdent { (fst $1, Abs.TAGen (fst $1) (snd $1)) }
   | '[' TypeArg ']' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TAList (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
+  | '@' TypeArg '(' ListTypeArg ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TAApp (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4)) }
 
 ListTypeArg :: { (Abs.BNFC'Position, [Abs.TypeArg]) }
 ListTypeArg

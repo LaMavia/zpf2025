@@ -58,6 +58,7 @@ All other symbols are terminals.
   | //TypeArg// | -> | //UIdent//
   |  |  **|**  | //LIdent//
   |  |  **|**  | ``[`` //TypeArg// ``]``
+  |  |  **|**  | //TypeArg// ``(`` //[TypeArg]// ``)``
   | //[TypeArg]// | -> | **eps**
   |  |  **|**  | //TypeArg//
   |  |  **|**  | //TypeArg// ``,`` //[TypeArg]//

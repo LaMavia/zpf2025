@@ -1,4 +1,4 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase, TemplateHaskell #-}
 module Bundler where
 
 import Data.Functor.Identity
@@ -6,18 +6,21 @@ import Control.Monad.Trans.State.Lazy (StateT, modify, runStateT)
 import qualified Abs as A
 import Data.Map (Map)
 import qualified Data.Map as Map
+import Language.Haskell.TH
 
 failure :: a -> b
 failure _ = undefined
 
 type B = StateT BState Identity
 
+type Prog = Map String Decl
+
 data BState = BS { bsDecls :: Map String Decl }
 
 data Decl
   = Decl { dIdent :: String
-         , dIn :: [String]
-         , dOut :: [String]
+         , dIn :: [Type]
+         , dOut :: [Type]
          , dClauses :: [([A.Term], [A.Stmt])] 
          }
     deriving (Show)
@@ -54,9 +57,11 @@ bundleDef = \case
       })) name (bsDecls s)
     })  
 
-haskt :: A.TypeArg -> String
+
+haskt :: A.TypeArg -> Type
 haskt = \case
-  A.TALit _ (A.UIdent x) -> x
-  A.TAGen _ (A.LIdent x) -> x 
-  A.TAList _ t -> '[' : showString (haskt t) "]"
+  A.TALit _ (A.UIdent x) -> ConT (mkName x)
+  A.TAGen _ (A.LIdent x) -> VarT (mkName x)
+  A.TAList _ t -> ListT `AppT` (haskt t)
+  A.TAApp _ ft xs ->  foldr AppT (haskt ft) $ fmap haskt xs
 

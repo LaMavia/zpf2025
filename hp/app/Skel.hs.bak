@@ -23,10 +23,6 @@ transLIdent :: Abs.LIdent -> Result
 transLIdent x = case x of
   Abs.LIdent string -> failure x
 
-transIdentifier :: Abs.Identifier -> Result
-transIdentifier x = case x of
-  Abs.Identifier string -> failure x
-
 transProgram :: Show a => Abs.Program' a -> Result
 transProgram x = case x of
   Abs.Program _ defs -> failure x
@@ -39,8 +35,10 @@ transDef x = case x of
 
 transTypeArg :: Show a => Abs.TypeArg' a -> Result
 transTypeArg x = case x of
-  Abs.TALit _ identifier -> failure x
+  Abs.TALit _ uident -> failure x
+  Abs.TAGen _ lident -> failure x
   Abs.TAList _ typearg -> failure x
+  Abs.TAApp _ typearg1 typearg2 -> failure x
 
 transDeclHeader :: Show a => Abs.DeclHeader' a -> Result
 transDeclHeader x = case x of
