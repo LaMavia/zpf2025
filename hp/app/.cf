@@ -1,0 +1,37 @@
+entrypoints Program ;
+
+-- Test. Test ::= UIdent ;
+
+Program. Program ::= [Def] ;
+terminator nonempty Def "." ;
+
+TDef. Def ::= ".decl" LIdent "(" [TypeArg] "|" [TypeArg] ")" ;
+TALit. TypeArg ::= UIdent ;
+TAGen. TypeArg ::= LIdent ;
+TAList. TypeArg ::= "[" TypeArg "]" ;
+separator TypeArg "," ;
+
+DFact. Def ::= DeclHeader ;
+DRule. Def ::= DeclHeader ":-" [Stmt] ;
+
+DHeader. DeclHeader ::= LIdent "(" [Term] ")" ;
+
+STrue. Stmt ::= "True" ;
+SFalse. Stmt ::= "False" ;
+SCall. Stmt ::= LIdent "(" [Term] ")" ;
+SAss. Stmt ::= UIdent "=" Term ;
+-- SIs. Stmt ::= UIdent "is" Exp ;
+
+TStr. Term ::= String ;
+TInt. Term ::= Integer ;
+TVar. Term ::= UIdent ;
+TIgnore. Term ::= "_" ;
+TList. Term ::= "[" [Term] "]";
+TCons. Term ::= "(" Term ":" Term ")" ;
+
+separator Term "," ;
+separator Stmt "," ;
+
+token UIdent (upper (letter | digit | '_')*) ;
+token LIdent (lower (letter | digit | '_')*) ;
+comment "%" ;
