@@ -178,6 +178,26 @@ instance Print (Abs.Stmt' a) where
     Abs.SFalse _ -> prPrec i 0 (concatD [doc (showString "False")])
     Abs.SCall _ lident terms -> prPrec i 0 (concatD [prt 0 lident, doc (showString "("), prt 0 terms, doc (showString ")")])
     Abs.SAss _ uident term -> prPrec i 0 (concatD [prt 0 uident, doc (showString "="), prt 0 term])
+    Abs.SIs _ uident iexp -> prPrec i 0 (concatD [prt 0 uident, doc (showString "is"), prt 0 iexp])
+
+instance Print (Abs.IExp' a) where
+  prt i = \case
+    Abs.IEVar _ uident -> prPrec i 3 (concatD [prt 0 uident])
+    Abs.IELit _ n -> prPrec i 3 (concatD [prt 0 n])
+    Abs.IENeg _ iexp -> prPrec i 2 (concatD [doc (showString "-"), prt 3 iexp])
+    Abs.IEMul _ iexp1 mulop iexp2 -> prPrec i 1 (concatD [prt 1 iexp1, prt 0 mulop, prt 2 iexp2])
+    Abs.IEAdd _ iexp1 addop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 addop, prt 1 iexp2])
+
+instance Print (Abs.AddOp' a) where
+  prt i = \case
+    Abs.Plus _ -> prPrec i 0 (concatD [doc (showString "+")])
+    Abs.Minus _ -> prPrec i 0 (concatD [doc (showString "-")])
+
+instance Print (Abs.MulOp' a) where
+  prt i = \case
+    Abs.Times _ -> prPrec i 0 (concatD [doc (showString "*")])
+    Abs.Div _ -> prPrec i 0 (concatD [doc (showString "/")])
+    Abs.Mod _ -> prPrec i 0 (concatD [doc (showString "%")])
 
 instance Print (Abs.Term' a) where
   prt i = \case

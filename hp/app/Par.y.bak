@@ -23,21 +23,26 @@ import Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('      { PT _ (TS _ 1)     }
-  ')'      { PT _ (TS _ 2)     }
-  ','      { PT _ (TS _ 3)     }
-  '.'      { PT _ (TS _ 4)     }
-  '.decl'  { PT _ (TS _ 5)     }
-  ':'      { PT _ (TS _ 6)     }
-  ':-'     { PT _ (TS _ 7)     }
-  '='      { PT _ (TS _ 8)     }
-  '@'      { PT _ (TS _ 9)     }
-  'False'  { PT _ (TS _ 10)    }
-  'True'   { PT _ (TS _ 11)    }
-  '['      { PT _ (TS _ 12)    }
-  ']'      { PT _ (TS _ 13)    }
-  '_'      { PT _ (TS _ 14)    }
-  '|'      { PT _ (TS _ 15)    }
+  '%'      { PT _ (TS _ 1)     }
+  '('      { PT _ (TS _ 2)     }
+  ')'      { PT _ (TS _ 3)     }
+  '*'      { PT _ (TS _ 4)     }
+  '+'      { PT _ (TS _ 5)     }
+  ','      { PT _ (TS _ 6)     }
+  '-'      { PT _ (TS _ 7)     }
+  '.'      { PT _ (TS _ 8)     }
+  '.decl'  { PT _ (TS _ 9)     }
+  '/'      { PT _ (TS _ 10)    }
+  ':'      { PT _ (TS _ 11)    }
+  ':-'     { PT _ (TS _ 12)    }
+  '='      { PT _ (TS _ 13)    }
+  'False'  { PT _ (TS _ 14)    }
+  'True'   { PT _ (TS _ 15)    }
+  '['      { PT _ (TS _ 16)    }
+  ']'      { PT _ (TS _ 17)    }
+  '_'      { PT _ (TS _ 18)    }
+  'is'     { PT _ (TS _ 19)    }
+  '|'      { PT _ (TS _ 20)    }
   L_integ  { PT _ (TI _)       }
   L_quoted { PT _ (TL _)       }
   L_UIdent { PT _ (T_UIdent _) }
@@ -76,7 +81,7 @@ TypeArg
   : UIdent { (fst $1, Abs.TALit (fst $1) (snd $1)) }
   | LIdent { (fst $1, Abs.TAGen (fst $1) (snd $1)) }
   | '[' TypeArg ']' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TAList (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
-  | '@' TypeArg '(' ListTypeArg ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TAApp (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4)) }
+  | TypeArg '(' ListTypeArg ')' { (fst $1, Abs.TAApp (fst $1) (snd $1) (snd $3)) }
 
 ListTypeArg :: { (Abs.BNFC'Position, [Abs.TypeArg]) }
 ListTypeArg
@@ -94,6 +99,39 @@ Stmt
   | 'False' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.SFalse (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
   | LIdent '(' ListTerm ')' { (fst $1, Abs.SCall (fst $1) (snd $1) (snd $3)) }
   | UIdent '=' Term { (fst $1, Abs.SAss (fst $1) (snd $1) (snd $3)) }
+  | UIdent 'is' IExp1 { (fst $1, Abs.SIs (fst $1) (snd $1) (snd $3)) }
+
+IExp3 :: { (Abs.BNFC'Position, Abs.IExp) }
+IExp3
+  : UIdent { (fst $1, Abs.IEVar (fst $1) (snd $1)) }
+  | Integer { (fst $1, Abs.IELit (fst $1) (snd $1)) }
+  | '(' IExp ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), (snd $2)) }
+
+IExp2 :: { (Abs.BNFC'Position, Abs.IExp) }
+IExp2
+  : '-' IExp3 { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.IENeg (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
+  | IExp3 { (fst $1, (snd $1)) }
+
+IExp1 :: { (Abs.BNFC'Position, Abs.IExp) }
+IExp1
+  : IExp1 MulOp IExp2 { (fst $1, Abs.IEMul (fst $1) (snd $1) (snd $2) (snd $3)) }
+  | IExp2 { (fst $1, (snd $1)) }
+
+IExp :: { (Abs.BNFC'Position, Abs.IExp) }
+IExp
+  : IExp AddOp IExp1 { (fst $1, Abs.IEAdd (fst $1) (snd $1) (snd $2) (snd $3)) }
+  | IExp1 { (fst $1, (snd $1)) }
+
+AddOp :: { (Abs.BNFC'Position, Abs.AddOp) }
+AddOp
+  : '+' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Plus (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '-' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Minus (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+
+MulOp :: { (Abs.BNFC'Position, Abs.MulOp) }
+MulOp
+  : '*' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Times (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '/' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Div (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '%' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Mod (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
 
 Term :: { (Abs.BNFC'Position, Abs.Term) }
 Term

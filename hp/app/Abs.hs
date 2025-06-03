@@ -47,6 +47,24 @@ data Stmt' a
     | SFalse a
     | SCall a LIdent [Term' a]
     | SAss a UIdent (Term' a)
+    | SIs a UIdent (IExp' a)
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type IExp = IExp' BNFC'Position
+data IExp' a
+    = IEVar a UIdent
+    | IELit a Integer
+    | IENeg a (IExp' a)
+    | IEMul a (IExp' a) (MulOp' a) (IExp' a)
+    | IEAdd a (IExp' a) (AddOp' a) (IExp' a)
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type AddOp = AddOp' BNFC'Position
+data AddOp' a = Plus a | Minus a
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type MulOp = MulOp' BNFC'Position
+data MulOp' a = Times a | Div a | Mod a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type Term = Term' BNFC'Position
@@ -107,6 +125,26 @@ instance HasPosition Stmt where
     SFalse p -> p
     SCall p _ _ -> p
     SAss p _ _ -> p
+    SIs p _ _ -> p
+
+instance HasPosition IExp where
+  hasPosition = \case
+    IEVar p _ -> p
+    IELit p _ -> p
+    IENeg p _ -> p
+    IEMul p _ _ _ -> p
+    IEAdd p _ _ _ -> p
+
+instance HasPosition AddOp where
+  hasPosition = \case
+    Plus p -> p
+    Minus p -> p
+
+instance HasPosition MulOp where
+  hasPosition = \case
+    Times p -> p
+    Div p -> p
+    Mod p -> p
 
 instance HasPosition Term where
   hasPosition = \case

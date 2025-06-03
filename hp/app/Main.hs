@@ -27,6 +27,7 @@ import Control.Monad      ( when, guard )
 import Control.Monad.Logic ( Logic, observeAll )
 import Data.List (and)
 import Control.Applicative ((<|>))
+import Data.Tuple
 
 import Abs   ( Program )
 import Lex   ( Token, mkPosToken )
@@ -98,16 +99,33 @@ main = do
     fs         -> mapM_ (runFile 2 pProgram) fs
 
 [hp|
-.decl p(|String).
-p(Y) :- Y = "Hello".
+% parent(P, C)
+.decl parent(|String, String).
+parent("Jozek", "Basia").
+parent("Ela", "Basia").
+parent("Stasiu", "Ela").
+parent("Jadwiga", "Ela").
+parent("Ela", "Zuzia").
 
+.decl grandparent(|String, String).
+grandparent(G, C) :- 
+  parent(G, P),
+  parent(P, C).
+
+.decl query(String|String).
+query(G, C) :- grandparent(G, C).
+|]
+
+[hp|
 .decl last(a, [a]|).
 last(X, [X]).
 last(X, (_:L)) :- last(X, L).
-.decl p(|String).
-p("aha").
-p("logl").
 
-.decl cons(a, [a] | [a]).
-cons(X, XS, (X:XS)).
+.decl elem(a, [a]|).
+elem(X, (X:_)).
+elem(X, (_:L)) :- elem(X, L).
 |]
+
+-- [hp|
+-- .decl repeat(a,Int|[a]).
+-- |]

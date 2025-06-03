@@ -21,7 +21,20 @@ STrue. Stmt ::= "True" ;
 SFalse. Stmt ::= "False" ;
 SCall. Stmt ::= LIdent "(" [Term] ")" ;
 SAss. Stmt ::= UIdent "=" Term ;
--- SIs. Stmt ::= UIdent "is" Exp ;
+SIs. Stmt ::= UIdent "is" IExp ;
+
+IEVar. IExp3 ::= UIdent ;
+IELit. IExp3 ::= Integer ;
+IENeg. IExp2 ::= "-" IExp3 ;
+IEMul. IExp1 ::= IExp1 MulOp IExp2 ;
+IEAdd. IExp ::= IExp AddOp IExp1 ;
+coercions  IExp 3 ;
+
+Plus.      AddOp ::= "+" ;
+Minus.     AddOp ::= "-" ;
+Times.     MulOp ::= "*" ;
+Div.       MulOp ::= "/" ;
+Mod.       MulOp ::= "%" ;
 
 TStr. Term ::= String ;
 TInt. Term ::= Integer ;

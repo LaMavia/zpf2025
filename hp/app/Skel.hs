@@ -50,6 +50,26 @@ transStmt x = case x of
   Abs.SFalse _ -> failure x
   Abs.SCall _ lident terms -> failure x
   Abs.SAss _ uident term -> failure x
+  Abs.SIs _ uident iexp -> failure x
+
+transIExp :: Show a => Abs.IExp' a -> Result
+transIExp x = case x of
+  Abs.IEVar _ uident -> failure x
+  Abs.IELit _ integer -> failure x
+  Abs.IENeg _ iexp -> failure x
+  Abs.IEMul _ iexp1 mulop iexp2 -> failure x
+  Abs.IEAdd _ iexp1 addop iexp2 -> failure x
+
+transAddOp :: Show a => Abs.AddOp' a -> Result
+transAddOp x = case x of
+  Abs.Plus _ -> failure x
+  Abs.Minus _ -> failure x
+
+transMulOp :: Show a => Abs.MulOp' a -> Result
+transMulOp x = case x of
+  Abs.Times _ -> failure x
+  Abs.Div _ -> failure x
+  Abs.Mod _ -> failure x
 
 transTerm :: Show a => Abs.Term' a -> Result
 transTerm x = case x of

@@ -98,6 +98,7 @@ data TransState =
      , tsDecls :: Prog 
      , tsParams :: [Name]
      , tsOutputs :: [Name]
+     , tsProg :: Prog
      }
 
 type TransM = StateT TransState Q 
@@ -113,6 +114,7 @@ runTransM prog m = fst <$> runStateT m s0
             , tsGroundedAliases = M.empty
             , tsParams = []
             , tsOutputs = []
+            , tsProg = prog
             }
 
 -- stdDecls :: Q [Dec]
@@ -231,9 +233,82 @@ transStmt = \case
   Abs.STrue {} -> return Sq.empty 
   Abs.SFalse {} -> return $ Sq.singleton (NoBindS (UnboundVarE (mkName "mempty")))
   Abs.SAss _ (Abs.UIdent (haskifyVarName -> v)) t -> unifyEq (mkName v) t
-    
+  Abs.SCall _ (Abs.LIdent p) argTerms -> do 
+    let pn = mkName p
+    md  <- getDecl p
+    case md of 
+      Nothing -> error $ showString "Unknown predicate «" $ showString p $ "»"
+      Just (Decl {dIn=pin, dOut=pout}) -> do
+        let npin = length pin
+        let npout = length pout
+        let (inArgs, outArgs) = partitionInOut npin npout argTerms
+        inExps <- mapM transGroundedTerm inArgs
+        (outPats, outAppends) <- unzip <$> mapM prepareOutArg outArgs
+        let outAppend = foldr (Sq.><) Sq.empty outAppends
+        {- all inArgs need to be grounded, just pass them, no guards -}
+
+        {- for now assume that every outArg is either fully grounded or fully free -}
+        {-
+          for arg in outArgs {
+            if isGrounded(arg) {
+              pass new var `temp_arg` in place of arg,
+              append { guard (temp_arg == arg) }
+            } else if isFree(arg) {
+              pass arg to call
+              markGrounded arg
+            }
+          }
+        -}
+        return $ Sq.fromList [
+          BindS (TupP outPats) $ (UnboundVarE pn) `AppE` TupE (Just <$> inExps)
+          ] Sq.>< outAppend 
   _ -> return $ Sq.singleton $ NoBindS (VarE (mkName "pure") `AppE` TupE [])
--- transStmt _ = 
+  where 
+    isTermGrounded :: Abs.Term -> TransM Bool 
+    isTermGrounded = \case 
+      Abs.TStr {} -> pure True 
+      Abs.TInt {} -> pure True 
+      Abs.TIgnore {} -> pure False 
+      Abs.TList _ ts -> and <$> traverse isTermGrounded ts
+      Abs.TCons _ a b -> and <$> traverse isTermGrounded [a, b]
+      Abs.TVar _ (Abs.UIdent (haskifyVarName -> v)) -> do 
+        let n = mkName v 
+        mgn <- findGroundedName n 
+        case mgn of 
+          Nothing -> pure False 
+          Just {} -> pure True
+
+    freeTermName :: Abs.Term -> TransM (Maybe Name) 
+    freeTermName = \case 
+      Abs.TVar _ (Abs.UIdent (haskifyVarName -> v)) -> do
+        let n = mkName v
+        mgn <- findGroundedName n
+        case mgn of 
+          Nothing -> pure $ Just n 
+          Just {} -> pure Nothing
+      _ -> pure Nothing
+
+    prepareOutArg :: Abs.Term -> TransM (Pat, Seq Stmt)
+    prepareOutArg t = do
+      itg <- isTermGrounded t 
+      mtn <- freeTermName t
+      if itg 
+        then (do 
+          te <- transGroundedTerm t
+          temp <- lNewName "temp"
+          markGrounded temp
+          return (
+            VarP temp,
+            Sq.singleton $ NoBindS $ (UnboundVarE (mkName "guard")) `AppE` (ParensE $ UInfixE (VarE temp) (UnboundVarE (mkName "==")) te) 
+            )
+        )
+        else case mtn of 
+              Just n -> do 
+                addAlias n n -- ???
+                markGrounded n
+                return (VarP n, Sq.empty)
+              Nothing -> error $ showString "Complicated term: " $ shows t "."
+                
 
 transGroundedTerm :: Abs.Term -> TransM Exp
 transGroundedTerm = \case 
@@ -372,3 +447,6 @@ partitionInOut :: Int -> Int -> [a] -> ([a],[a])
 partitionInOut nin nout xs = 
   let (ins, rest) = splitAt nin xs 
   in (ins, take nout rest)
+
+getDecl :: String -> TransM (Maybe Decl)
+getDecl p = gets (M.lookup p . tsProg)
