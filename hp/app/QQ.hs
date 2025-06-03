@@ -4,8 +4,8 @@ module QQ where
 
 import Language.Haskell.TH.Quote (QuasiQuoter (..))
 import Language.Haskell.TH
-import Debug.Trace (trace)
 import Text.Pretty.Simple (pPrint)
+import Control.Monad.IO.Class (liftIO)
 
 import Transformer 
 import Bundler
@@ -26,5 +26,7 @@ hp = QuasiQuoter {
             Left err -> error (show err)
             Right tree -> do 
               q <- runTransM (runB $ bundle tree) transProg
-              pPrint (ppr_list q)
+              pPrint q
+              liftIO (print (ppr_list q))
+              -- pPrint (ppr_list q)
               return q

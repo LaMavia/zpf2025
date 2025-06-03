@@ -7,6 +7,8 @@ import qualified Abs as A
 import Data.Map (Map)
 import qualified Data.Map as Map
 import Language.Haskell.TH
+import qualified Data.Set as S 
+import Data.Set (Set)
 
 failure :: a -> b
 failure _ = undefined
@@ -17,11 +19,14 @@ type Prog = Map String Decl
 
 data BState = BS { bsDecls :: Map String Decl }
 
+type DClause = ([A.Term], [A.Stmt]) 
+
 data Decl
   = Decl { dIdent :: String
          , dIn :: [Type]
          , dOut :: [Type]
-         , dClauses :: [([A.Term], [A.Stmt])] 
+         , dTypeVars :: Set Name
+         , dClauses :: [DClause]
          }
     deriving (Show)
 
@@ -41,6 +46,7 @@ bundleDef = \case
     let dec = Decl { dIdent=name
                    , dIn=(haskt <$> typeargs1)
                    , dOut=(haskt <$> typeargs2)
+                   , dTypeVars=(foldr S.union S.empty $ fmap typeVars $ typeargs1 <> typeargs2)
                    , dClauses = []
                    }
     in modify (\s -> s { bsDecls = Map.insert name dec (bsDecls s) })
@@ -64,4 +70,12 @@ haskt = \case
   A.TAGen _ (A.LIdent x) -> VarT (mkName x)
   A.TAList _ t -> ListT `AppT` (haskt t)
   A.TAApp _ ft xs ->  foldr AppT (haskt ft) $ fmap haskt xs
+
+typeVars :: A.TypeArg -> Set Name
+typeVars = \case
+  A.TALit {} -> S.empty 
+  A.TAGen _ (A.LIdent x) -> S.singleton (mkName x)
+  A.TAList _ t -> typeVars t
+  A.TAApp _ ft xs -> foldr S.union (typeVars ft) $ fmap typeVars xs
+
 

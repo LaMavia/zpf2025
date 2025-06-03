@@ -14,16 +14,16 @@ import Prelude
   , IO, (>>), (>>=), mapM_, putStrLn
   , FilePath
   , getContents, readFile
-  , return
   , undefined
-  -- , pure
+  , pure
+  , (==)
+  , Eq
   )
 import System.Environment ( getArgs )
 import System.Exit        ( exitFailure )
-import Control.Monad      ( when )
-import Text.Pretty.Simple ( pPrint )
-import Language.Haskell.TH.Syntax
--- import Control.Monad.Logic ( Logic, observeAll )
+import Control.Monad      ( when, guard )
+import Control.Monad.Logic ( Logic, observeAll )
+import Data.List (and)
 -- import Control.Applicative ((<|>))
 
 import Abs   ( Program )
