@@ -26,7 +26,7 @@ import System.Exit        ( exitFailure )
 import Control.Monad      ( when, guard )
 import Control.Monad.Logic ( Logic, observeAll )
 import Data.List (and)
--- import Control.Applicative ((<|>))
+import Control.Applicative ((<|>))
 
 import Abs   ( Program )
 import Lex   ( Token, mkPosToken )
@@ -102,4 +102,3 @@ main = do
 last(X, [X]).
 last(X, (_:L)) :- last(X, L).
 |]
-

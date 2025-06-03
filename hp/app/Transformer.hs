@@ -149,9 +149,20 @@ transBody :: Name -> Int -> Int -> [DClause] -> TransM Dec
 transBody p nin nout dclauses = do 
   paramPatterns <- mapM genParam [1..nin]
   reverseParams
+  params <- getParams
+  let paramse = TupE [Just (VarE p) | p <- params]
   let inPattern = [TupP paramPatterns]
-  clauses <- mapM (scoped . transClause) dclauses
-  return $ FunD p [ Clause inPattern (GuardedB $ clauses <> [(NormalG (ConE (mkName "True")), VarE (mkName "mempty"))]) [] ]
+  clauses <- mapM (scoped . transClause paramse) dclauses
+  return $ 
+    FunD 
+      p 
+      [ Clause inPattern (
+        NormalB $ 
+          foldr 
+            (\x u -> UInfixE x (UnboundVarE (mkName "<|>")) u) 
+            (VarE (mkName "mempty"))
+            clauses
+      ) [] ]
   where 
     genParam :: Int -> TransM Pat
     genParam i = do
@@ -160,16 +171,28 @@ transBody p nin nout dclauses = do
       prependParam n
       return (VarP n) 
 
-transClause :: DClause -> TransM (Guard, Exp)
-transClause (terms, body) = do 
-  params <- getParams
+transClause :: Exp -> DClause -> TransM Exp
+transClause paramse (terms, body) = do 
   patterns <- mapM patternOfAbsTerm terms
   eqs <- assertEqualAllAliases
-  return (
-    PatG (zipWith BindS patterns $ fmap VarE params), 
-    DoE Nothing $ toList $ eqs Sq.>< Sq.fromList [
-      NoBindS $ VarE (mkName "pure") `AppE` TupE []
-    ])
+  return $ ParensE
+             (CaseE 
+                paramse
+                [
+                  Match 
+                    (TupP patterns)
+                    (NormalB 
+                      $ DoE Nothing $ toList $ eqs Sq.>< Sq.fromList [
+                          NoBindS $ VarE (mkName "pure") `AppE` TupE []
+                        ]
+                    )
+                    [],
+                  Match 
+                    WildP
+                    (NormalB $ VarE (mkName  "mempty"))
+                    []
+                ]
+             )
 
 patternOfAbsTerm :: Abs.Term -> TransM Pat
 patternOfAbsTerm = 
