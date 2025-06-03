@@ -18,6 +18,8 @@ import Prelude
   , pure
   , (==)
   , Eq
+  , Bool (..)
+  , mempty
   )
 import System.Environment ( getArgs )
 import System.Exit        ( exitFailure )

@@ -151,7 +151,7 @@ transBody p nin nout dclauses = do
   reverseParams
   let inPattern = [TupP paramPatterns]
   clauses <- mapM (scoped . transClause) dclauses
-  return $ FunD p [ Clause inPattern (GuardedB clauses) [] ]
+  return $ FunD p [ Clause inPattern (GuardedB $ clauses <> [(NormalG (ConE (mkName "True")), VarE (mkName "mempty"))]) [] ]
   where 
     genParam :: Int -> TransM Pat
     genParam i = do
