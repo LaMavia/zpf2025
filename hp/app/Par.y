@@ -23,26 +23,32 @@ import Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '%'      { PT _ (TS _ 1)     }
-  '('      { PT _ (TS _ 2)     }
-  ')'      { PT _ (TS _ 3)     }
-  '*'      { PT _ (TS _ 4)     }
-  '+'      { PT _ (TS _ 5)     }
-  ','      { PT _ (TS _ 6)     }
-  '-'      { PT _ (TS _ 7)     }
-  '.'      { PT _ (TS _ 8)     }
-  '.decl'  { PT _ (TS _ 9)     }
-  '/'      { PT _ (TS _ 10)    }
-  ':'      { PT _ (TS _ 11)    }
-  ':-'     { PT _ (TS _ 12)    }
-  '='      { PT _ (TS _ 13)    }
-  'False'  { PT _ (TS _ 14)    }
-  'True'   { PT _ (TS _ 15)    }
-  '['      { PT _ (TS _ 16)    }
-  ']'      { PT _ (TS _ 17)    }
-  '_'      { PT _ (TS _ 18)    }
-  'is'     { PT _ (TS _ 19)    }
-  '|'      { PT _ (TS _ 20)    }
+  '!='     { PT _ (TS _ 1)     }
+  '%'      { PT _ (TS _ 2)     }
+  '('      { PT _ (TS _ 3)     }
+  ')'      { PT _ (TS _ 4)     }
+  '*'      { PT _ (TS _ 5)     }
+  '+'      { PT _ (TS _ 6)     }
+  ','      { PT _ (TS _ 7)     }
+  '-'      { PT _ (TS _ 8)     }
+  '.'      { PT _ (TS _ 9)     }
+  '.decl'  { PT _ (TS _ 10)    }
+  '/'      { PT _ (TS _ 11)    }
+  ':'      { PT _ (TS _ 12)    }
+  ':-'     { PT _ (TS _ 13)    }
+  '<'      { PT _ (TS _ 14)    }
+  '<='     { PT _ (TS _ 15)    }
+  '='      { PT _ (TS _ 16)    }
+  '=='     { PT _ (TS _ 17)    }
+  '>'      { PT _ (TS _ 18)    }
+  '>='     { PT _ (TS _ 19)    }
+  'False'  { PT _ (TS _ 20)    }
+  'True'   { PT _ (TS _ 21)    }
+  '['      { PT _ (TS _ 22)    }
+  ']'      { PT _ (TS _ 23)    }
+  '_'      { PT _ (TS _ 24)    }
+  'is'     { PT _ (TS _ 25)    }
+  '|'      { PT _ (TS _ 26)    }
   L_integ  { PT _ (TI _)       }
   L_quoted { PT _ (TL _)       }
   L_UIdent { PT _ (T_UIdent _) }
@@ -100,6 +106,7 @@ Stmt
   | LIdent '(' ListTerm ')' { (fst $1, Abs.SCall (fst $1) (snd $1) (snd $3)) }
   | UIdent '=' Term { (fst $1, Abs.SAss (fst $1) (snd $1) (snd $3)) }
   | UIdent 'is' IExp { (fst $1, Abs.SIs (fst $1) (snd $1) (snd $3)) }
+  | IExp RelOp IExp { (fst $1, Abs.SRel (fst $1) (snd $1) (snd $2) (snd $3)) }
 
 IExp3 :: { (Abs.BNFC'Position, Abs.IExp) }
 IExp3
@@ -132,6 +139,15 @@ MulOp
   : '*' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Times (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
   | '/' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Div (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
   | '%' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.Mod (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+
+RelOp :: { (Abs.BNFC'Position, Abs.RelOp) }
+RelOp
+  : '<' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.LTH (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '<=' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.LE (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '>' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.GTH (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '>=' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.GE (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '==' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.EQU (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | '!=' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.NE (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
 
 Term :: { (Abs.BNFC'Position, Abs.Term) }
 Term

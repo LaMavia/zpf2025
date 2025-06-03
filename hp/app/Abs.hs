@@ -48,6 +48,7 @@ data Stmt' a
     | SCall a LIdent [Term' a]
     | SAss a UIdent (Term' a)
     | SIs a UIdent (IExp' a)
+    | SRel a (IExp' a) (RelOp' a) (IExp' a)
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type IExp = IExp' BNFC'Position
@@ -65,6 +66,10 @@ data AddOp' a = Plus a | Minus a
 
 type MulOp = MulOp' BNFC'Position
 data MulOp' a = Times a | Div a | Mod a
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type RelOp = RelOp' BNFC'Position
+data RelOp' a = LTH a | LE a | GTH a | GE a | EQU a | NE a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type Term = Term' BNFC'Position
@@ -126,6 +131,7 @@ instance HasPosition Stmt where
     SCall p _ _ -> p
     SAss p _ _ -> p
     SIs p _ _ -> p
+    SRel p _ _ _ -> p
 
 instance HasPosition IExp where
   hasPosition = \case
@@ -145,6 +151,15 @@ instance HasPosition MulOp where
     Times p -> p
     Div p -> p
     Mod p -> p
+
+instance HasPosition RelOp where
+  hasPosition = \case
+    LTH p -> p
+    LE p -> p
+    GTH p -> p
+    GE p -> p
+    EQU p -> p
+    NE p -> p
 
 instance HasPosition Term where
   hasPosition = \case

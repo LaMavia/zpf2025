@@ -39,8 +39,9 @@ The symbols used in  are the following:
   | . | .decl | ( | |
   | ) | [ | ] | ,
   | :- | = | - | +
-  | * | / | % | _
-  | : |  |  |
+  | * | / | % | <
+  | <= | > | >= | ==
+  | != | _ | : |
 
 ===Comments===
 Single-line comments begin with %.There are no multiple-line comments in the grammar.
@@ -70,6 +71,7 @@ All other symbols are terminals.
   |  |  **|**  | //LIdent// ``(`` //[Term]// ``)``
   |  |  **|**  | //UIdent// ``=`` //Term//
   |  |  **|**  | //UIdent// ``is`` //IExp//
+  |  |  **|**  | //IExp// //RelOp// //IExp//
   | //IExp3// | -> | //UIdent//
   |  |  **|**  | //Integer//
   |  |  **|**  | ``(`` //IExp// ``)``
@@ -84,6 +86,12 @@ All other symbols are terminals.
   | //MulOp// | -> | ``*``
   |  |  **|**  | ``/``
   |  |  **|**  | ``%``
+  | //RelOp// | -> | ``<``
+  |  |  **|**  | ``<=``
+  |  |  **|**  | ``>``
+  |  |  **|**  | ``>=``
+  |  |  **|**  | ``==``
+  |  |  **|**  | ``!=``
   | //Term// | -> | //String//
   |  |  **|**  | //Integer//
   |  |  **|**  | //UIdent//

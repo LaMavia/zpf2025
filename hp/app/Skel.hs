@@ -51,6 +51,7 @@ transStmt x = case x of
   Abs.SCall _ lident terms -> failure x
   Abs.SAss _ uident term -> failure x
   Abs.SIs _ uident iexp -> failure x
+  Abs.SRel _ iexp1 relop iexp2 -> failure x
 
 transIExp :: Show a => Abs.IExp' a -> Result
 transIExp x = case x of
@@ -70,6 +71,15 @@ transMulOp x = case x of
   Abs.Times _ -> failure x
   Abs.Div _ -> failure x
   Abs.Mod _ -> failure x
+
+transRelOp :: Show a => Abs.RelOp' a -> Result
+transRelOp x = case x of
+  Abs.LTH _ -> failure x
+  Abs.LE _ -> failure x
+  Abs.GTH _ -> failure x
+  Abs.GE _ -> failure x
+  Abs.EQU _ -> failure x
+  Abs.NE _ -> failure x
 
 transTerm :: Show a => Abs.Term' a -> Result
 transTerm x = case x of

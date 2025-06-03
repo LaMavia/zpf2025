@@ -179,6 +179,7 @@ instance Print (Abs.Stmt' a) where
     Abs.SCall _ lident terms -> prPrec i 0 (concatD [prt 0 lident, doc (showString "("), prt 0 terms, doc (showString ")")])
     Abs.SAss _ uident term -> prPrec i 0 (concatD [prt 0 uident, doc (showString "="), prt 0 term])
     Abs.SIs _ uident iexp -> prPrec i 0 (concatD [prt 0 uident, doc (showString "is"), prt 0 iexp])
+    Abs.SRel _ iexp1 relop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 relop, prt 0 iexp2])
 
 instance Print (Abs.IExp' a) where
   prt i = \case
@@ -198,6 +199,15 @@ instance Print (Abs.MulOp' a) where
     Abs.Times _ -> prPrec i 0 (concatD [doc (showString "*")])
     Abs.Div _ -> prPrec i 0 (concatD [doc (showString "/")])
     Abs.Mod _ -> prPrec i 0 (concatD [doc (showString "%")])
+
+instance Print (Abs.RelOp' a) where
+  prt i = \case
+    Abs.LTH _ -> prPrec i 0 (concatD [doc (showString "<")])
+    Abs.LE _ -> prPrec i 0 (concatD [doc (showString "<=")])
+    Abs.GTH _ -> prPrec i 0 (concatD [doc (showString ">")])
+    Abs.GE _ -> prPrec i 0 (concatD [doc (showString ">=")])
+    Abs.EQU _ -> prPrec i 0 (concatD [doc (showString "==")])
+    Abs.NE _ -> prPrec i 0 (concatD [doc (showString "!=")])
 
 instance Print (Abs.Term' a) where
   prt i = \case

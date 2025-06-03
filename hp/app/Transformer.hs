@@ -262,7 +262,35 @@ transStmt = \case
         return $ Sq.fromList [
           BindS (TupP outPats) $ (UnboundVarE pn) `AppE` TupE (Just <$> inExps)
           ] Sq.>< outAppend 
-  _ -> return $ Sq.singleton $ NoBindS (VarE (mkName "pure") `AppE` TupE [])
+  Abs.SIs _ (Abs.UIdent (haskifyVarName -> x)) absiexp -> do 
+    let xn = mkName x
+    mn <- findGroundedName xn 
+    exp <- transIExp absiexp
+    case mn of 
+      Just n -> return $ Sq.singleton $ NoBindS $ (UnboundVarE (mkName "guard")) `AppE` (ParensE (UInfixE (VarE n) (UnboundVarE (mkName "==")) exp)) 
+      Nothing -> do
+        a <- lNewName x 
+        addAlias xn a 
+        markGrounded a 
+        markGrounded xn
+
+        return $ Sq.fromList [
+            BindS (VarP a) (UnboundVarE (mkName "pure") `AppE` exp)
+          ]
+  Abs.SRel _ a op b -> do
+    ae <- transIExp a
+    be <- transIExp b 
+    let opn = mkName $ case op of 
+            Abs.LTH {} -> "<"
+            Abs.LE {} -> "<="
+            Abs.GTH {} -> ">"
+            Abs.GE {} -> ">="
+            Abs.EQU {} -> "=="
+            Abs.NE {} -> "/="
+    return $ Sq.fromList [
+      NoBindS (UnboundVarE (mkName "guard") `AppE` ParensE (UInfixE ae (UnboundVarE opn) be))
+      ]
+
   where 
     isTermGrounded :: Abs.Term -> TransM Bool 
     isTermGrounded = \case 
@@ -309,6 +337,32 @@ transStmt = \case
                 return (VarP n, Sq.empty)
               Nothing -> error $ showString "Complicated term: " $ shows t "."
                 
+transIExp :: Abs.IExp -> TransM Exp
+transIExp = \case 
+  Abs.IEVar _ (Abs.UIdent (haskifyVarName -> x)) -> do
+    let xn = mkName x 
+    mxn <- findGroundedName xn 
+    case mxn of 
+      Nothing -> error $ showString "Free variable in expression: " $ show x 
+      Just n -> return (VarE n)
+  Abs.IELit _ i -> return (LitE (IntegerL i))
+  Abs.IENeg _ t -> (UnboundVarE (mkName "-") `AppE`) <$> transIExp t
+  Abs.IEMul _ a op b -> do
+    let opn = mkName $ case op of 
+                Abs.Times {} -> "*"
+                Abs.Div {} -> "div"
+                Abs.Mod {} -> "mod"
+    ae <- transIExp a
+    be <- transIExp b 
+    return $ UInfixE ae (UnboundVarE opn) be
+  Abs.IEAdd _ a op b -> do
+    let opn = mkName $ case op of 
+                Abs.Plus {} -> "+"
+                Abs.Minus {} -> "-"
+    ae <- transIExp a
+    be <- transIExp b 
+    return $ UInfixE ae (UnboundVarE opn) be
+
 
 transGroundedTerm :: Abs.Term -> TransM Exp
 transGroundedTerm = \case 

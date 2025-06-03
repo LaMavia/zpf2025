@@ -20,6 +20,7 @@ import Prelude
   , Eq
   , Bool (..)
   , mempty
+  , (+), (-), (*), div, mod, (>=), (<), (>), (<=), (==), (/=)
   )
 import System.Environment ( getArgs )
 import System.Exit        ( exitFailure )
@@ -98,32 +99,54 @@ main = do
     "-s":fs    -> mapM_ (runFile 0 pProgram) fs
     fs         -> mapM_ (runFile 2 pProgram) fs
 
+-- [hp|
+-- % parent(P, C)
+-- .decl parent(|String, String).
+-- parent("Jozek", "Basia").
+-- parent("Ela", "Basia").
+-- parent("Stasiu", "Ela").
+-- parent("Jadwiga", "Ela").
+-- parent("Ela", "Zuzia").
+--
+-- .decl grandparent(|String, String).
+-- grandparent(G, C) :- 
+--   parent(G, P),
+--   parent(P, C).
+--
+-- .decl query(String|String).
+-- query(G, C) :- grandparent(G, C).
+-- |]
+--
+-- [hp|
+-- .decl last(a, [a]|).
+-- last(X, [X]).
+-- last(X, (_:L)) :- last(X, L).
+--
+-- .decl elem(a, [a]|).
+-- elem(X, (X:_)).
+-- elem(X, (_:L)) :- elem(X, L).
+-- |]
+
 [hp|
-% parent(P, C)
-.decl parent(|String, String).
-parent("Jozek", "Basia").
-parent("Ela", "Basia").
-parent("Stasiu", "Ela").
-parent("Jadwiga", "Ela").
-parent("Ela", "Zuzia").
+  .decl add(Int,Int|Int).
+  add(A, B, C) :- C is A + B.
 
-.decl grandparent(|String, String).
-grandparent(G, C) :- 
-  parent(G, P),
-  parent(P, C).
-
-.decl query(String|String).
-query(G, C) :- grandparent(G, C).
+  .decl q(Int,Int,Int|).
+  q(A,B,C) :- add(A, B, C).
 |]
 
 [hp|
-.decl last(a, [a]|).
-last(X, [X]).
-last(X, (_:L)) :- last(X, L).
+  .decl geq(Int,Int|).
+  geq(A, B) :- A >= B.
+|]
 
-.decl elem(a, [a]|).
-elem(X, (X:_)).
-elem(X, (_:L)) :- elem(X, L).
+[hp|
+  .decl repeat(Int, a | [a]).
+  repeat(0, _, []).
+  repeat(N, X, (X:L)) :-
+    N > 0,
+    N1 is N - 1,
+    repeat(N1, X, L).
 |]
 
 -- [hp|

@@ -22,6 +22,7 @@ SFalse. Stmt ::= "False" ;
 SCall. Stmt ::= LIdent "(" [Term] ")" ;
 SAss. Stmt ::= UIdent "=" Term ;
 SIs. Stmt ::= UIdent "is" IExp ;
+SRel. Stmt ::= IExp RelOp IExp ;
 
 IEVar. IExp3 ::= UIdent ;
 IELit. IExp3 ::= Integer ;
@@ -35,6 +36,13 @@ Minus.     AddOp ::= "-" ;
 Times.     MulOp ::= "*" ;
 Div.       MulOp ::= "/" ;
 Mod.       MulOp ::= "%" ;
+
+LTH.       RelOp ::= "<" ;
+LE.        RelOp ::= "<=" ;
+GTH.       RelOp ::= ">" ;
+GE.        RelOp ::= ">=" ;
+EQU.       RelOp ::= "==" ;
+NE.        RelOp ::= "!=" ;
 
 TStr. Term ::= String ;
 TInt. Term ::= Integer ;

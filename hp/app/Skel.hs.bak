@@ -60,8 +60,9 @@ transIExp x = case x of
   Abs.IEMul _ iexp1 mulop iexp2 -> failure x
   Abs.IEAdd _ iexp1 addop iexp2 -> failure x
 
-transExpr :: Show a => Abs.Expr' a -> Result
-transExpr x = case x of
+transRExp :: Show a => Abs.RExp' a -> Result
+transRExp x = case x of
+  Abs.RERel _ iexp1 relop iexp2 -> failure x
 
 transAddOp :: Show a => Abs.AddOp' a -> Result
 transAddOp x = case x of
@@ -73,6 +74,15 @@ transMulOp x = case x of
   Abs.Times _ -> failure x
   Abs.Div _ -> failure x
   Abs.Mod _ -> failure x
+
+transRelOp :: Show a => Abs.RelOp' a -> Result
+transRelOp x = case x of
+  Abs.LTH _ -> failure x
+  Abs.LE _ -> failure x
+  Abs.GTH _ -> failure x
+  Abs.GE _ -> failure x
+  Abs.EQU _ -> failure x
+  Abs.NE _ -> failure x
 
 transTerm :: Show a => Abs.Term' a -> Result
 transTerm x = case x of
