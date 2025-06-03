@@ -101,4 +101,10 @@ main = do
 .decl last(a, [a]|).
 last(X, [X]).
 last(X, (_:L)) :- last(X, L).
+.decl p(|String).
+p("aha").
+p("logl").
+
+.decl cons(a, [a] | [a]).
+cons(X, XS, (X:XS)).
 |]

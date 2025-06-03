@@ -15,9 +15,11 @@ import qualified Data.Sequence as Sq
 import Data.Sequence (Seq)
 import Text.Pretty.Simple (pPrint)
 import Data.Maybe (fromMaybe)
-import Control.Monad (forM)
+import Control.Monad (forM, zipWithM, forM_)
 import Data.Char (toLower)
 import Data.Foldable (toList)
+import Debug.Trace (traceShow)
+import Data.List (uncons)
 
 {- 
 RULES:
@@ -92,8 +94,10 @@ type LogicIO = LogicT IO
 data TransState = 
   TS { tsGroundedVars :: Set Name
      , tsAliases :: Map Name (Set Name)
+     , tsGroundedAliases :: Map Name (Set Name)
      , tsDecls :: Prog 
      , tsParams :: [Name]
+     , tsOutputs :: [Name]
      }
 
 type TransM = StateT TransState Q 
@@ -106,7 +110,9 @@ runTransM prog m = fst <$> runStateT m s0
     s0 = TS { tsGroundedVars = S.empty
             , tsDecls = prog
             , tsAliases = M.empty
+            , tsGroundedAliases = M.empty
             , tsParams = []
+            , tsOutputs = []
             }
 
 -- stdDecls :: Q [Dec]
@@ -152,7 +158,11 @@ transBody p nin nout dclauses = do
   params <- getParams
   let paramse = TupE [Just (VarE p) | p <- params]
   let inPattern = [TupP paramPatterns]
-  clauses <- mapM (scoped . transClause paramse) dclauses
+
+  mapM_ genOutput [1..nout]
+  reverseOutputs
+
+  clauses <- mapM (scoped . transClause paramse nin nout) dclauses
   return $ 
     FunD 
       p 
@@ -171,20 +181,32 @@ transBody p nin nout dclauses = do
       prependParam n
       return (VarP n) 
 
-transClause :: Exp -> DClause -> TransM Exp
-transClause paramse (terms, body) = do 
-  patterns <- mapM patternOfAbsTerm terms
+    genOutput :: Int -> TransM Name
+    genOutput i = do
+      n <- lNewName (showString "out" $ show i)
+      prependOutput n
+      return n
+
+
+
+
+transClause :: Exp -> Int -> Int -> DClause -> TransM Exp
+transClause paramse nin nout (terms, body) = do 
+  let (inTerms, outTerms) = partitionInOut nin nout terms 
+  patterns <- mapM patternOfAbsTerm inTerms
+  params <- getParams
+  traceShow params groundParams
   eqs <- assertEqualAllAliases
-  return $ ParensE
+  stmts <- transClauseBody body
+  epilogue <- generateEpilogue outTerms
+  return $ traceShow stmts $ ParensE
              (CaseE 
                 paramse
                 [
                   Match 
                     (TupP patterns)
                     (NormalB 
-                      $ DoE Nothing $ toList $ eqs Sq.>< Sq.fromList [
-                          NoBindS $ VarE (mkName "pure") `AppE` TupE []
-                        ]
+                      $ DoE Nothing $ toList $ eqs Sq.>< stmts Sq.>< epilogue 
                     )
                     [],
                   Match 
@@ -193,6 +215,50 @@ transClause paramse (terms, body) = do
                     []
                 ]
              )
+  where 
+    generateEpilogue :: [Abs.Term] -> TransM (Seq Stmt)
+    generateEpilogue ts = do 
+      outs <- getOutputs
+      pres <- foldr (Sq.><) Sq.empty <$> zipWithM unifyEq outs ts
+      traceShow (outs, pres) $ return $ pres Sq.:|> (NoBindS (VarE (mkName "pure") `AppE` TupE ((Just . VarE) <$> outs)))
+
+
+transClauseBody :: [Abs.Stmt] -> TransM (Seq Stmt)
+transClauseBody = fmap (foldr (Sq.><) Sq.empty) . mapM transStmt 
+
+transStmt :: Abs.Stmt -> TransM (Seq Stmt)
+transStmt _ = return $ Sq.singleton $ NoBindS (VarE (mkName "pure") `AppE` TupE [])
+
+transGroundedTerm :: Abs.Term -> TransM Exp
+transGroundedTerm = \case 
+  Abs.TStr _ s -> return $ LitE $ StringL s 
+  Abs.TInt _ i -> return $ LitE $ IntegerL i
+  Abs.TVar _ (Abs.UIdent (haskifyVarName -> v)) -> do
+    let n = mkName v
+    gn <- findGroundedName n
+    case gn of 
+      Just n' -> return (VarE n')
+      Nothing -> error $ showString "Ungrounded term «" . shows v $ "»." 
+  Abs.TIgnore _ -> do
+    gs <- gets tsGroundedVars
+    gks <- gets tsGroundedAliases
+    return (VarE (mkName "_"))
+    -- error $ "Ungrounded term «_». Grounded: " <> show gs <> "|" <> show gks
+  Abs.TList _ ts -> ListE <$> mapM transGroundedTerm ts
+  Abs.TCons _ a b -> do 
+    ae <- transGroundedTerm a
+    be <- transGroundedTerm b 
+    return $ ParensE (UInfixE ae (ConE (mkName ":")) be)
+  
+unifyEq :: Name -> Abs.Term -> TransM (Seq Stmt)
+unifyEq n t = do
+  gn <- findGroundedName n
+  case gn of 
+    Just n' -> Sq.singleton . NoBindS . UInfixE (VarE n') (UnboundVarE (mkName "==")) <$> transGroundedTerm t
+    Nothing -> do
+      markGrounded n 
+      Sq.singleton . BindS (VarP n) . (AppE (UnboundVarE (mkName "pure"))) <$> transGroundedTerm t
+
 
 patternOfAbsTerm :: Abs.Term -> TransM Pat
 patternOfAbsTerm = 
@@ -203,6 +269,8 @@ patternOfAbsTerm =
       let n = mkName v
       a <- lNewName v 
       addAlias n a
+      markGrounded a
+      markGrounded n
       return $ VarP a
     Abs.TIgnore _ -> return WildP
     Abs.TList _ ts -> ListP <$> mapM patternOfAbsTerm ts
@@ -211,14 +279,34 @@ patternOfAbsTerm =
       rp <- patternOfAbsTerm r
       return $ ParensP $ ConP (mkName ":") [] [xp, rp] 
 
+groundParams :: TransM ()
+groundParams = do
+  params <- getParams 
+  forM_ params markGrounded
+
 markGrounded :: Name -> TransM ()
-markGrounded n = modify (\s -> s { tsGroundedVars = S.insert n (tsGroundedVars s) })
+markGrounded n = do 
+  aliases <- getAliases n 
+  modify (\s -> s { tsGroundedVars = S.insert n (tsGroundedVars s)
+                  , tsGroundedAliases = M.insertWith S.union n aliases (tsGroundedAliases s)
+                  })
+
+findGroundedName :: Name -> TransM (Maybe Name)
+findGroundedName n = do
+  gals <- gets (M.findWithDefault S.empty n . tsGroundedAliases)
+  return $ fmap fst $ uncons $ toList gals
 
 prependParam :: Name -> TransM ()
 prependParam n = modify (\s -> s { tsParams = n:tsParams s })
 
 reverseParams :: TransM ()
 reverseParams = modify (\s -> s { tsParams = reverse (tsParams s) })
+
+prependOutput :: Name -> TransM ()
+prependOutput n = modify (\s -> s { tsOutputs = n:tsOutputs s })
+
+reverseOutputs :: TransM ()
+reverseOutputs = modify (\s -> s { tsOutputs = reverse (tsOutputs s) })
 
 scoped :: TransM a -> TransM a
 scoped m = do
@@ -236,6 +324,9 @@ getAliases n = gets (M.findWithDefault S.empty n . tsAliases)
 getParams :: TransM [Name]
 getParams = gets tsParams
 
+getOutputs :: TransM [Name]
+getOutputs = gets tsOutputs
+
 assertEqualAllAliases :: TransM (Seq Stmt)
 assertEqualAllAliases = do 
   keys <- gets (fmap fst . M.toList . tsAliases)
@@ -249,7 +340,8 @@ assertEqualAliases n = do
     [] -> pure Sq.empty
     [_] -> pure Sq.empty
     x:xs -> do 
-      modify (\s -> s{tsAliases=M.delete n (tsAliases s)})
+      forM_ (x:xs) markGrounded 
+      modify (\s -> s{tsAliases=M.delete n (tsAliases s), tsGroundedAliases=M.insertWith S.union n aliases (tsGroundedAliases s)})
       pure  $ Sq.singleton 
             $ NoBindS 
             $ AppE 
@@ -267,3 +359,8 @@ addAlias n a =
 
 haskifyVarName :: String -> String
 haskifyVarName = fmap toLower
+
+partitionInOut :: Int -> Int -> [a] -> ([a],[a])
+partitionInOut nin nout xs = 
+  let (ins, rest) = splitAt nin xs 
+  in (ins, take nout rest)
