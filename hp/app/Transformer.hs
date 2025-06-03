@@ -18,7 +18,7 @@ import Data.Maybe (fromMaybe)
 import Control.Monad (forM, zipWithM, forM_)
 import Data.Char (toLower)
 import Data.Foldable (toList)
-import Debug.Trace (traceShow)
+import Debug.Trace (traceShow, trace)
 import Data.List (uncons)
 
 {- 
@@ -227,7 +227,13 @@ transClauseBody :: [Abs.Stmt] -> TransM (Seq Stmt)
 transClauseBody = fmap (foldr (Sq.><) Sq.empty) . mapM transStmt 
 
 transStmt :: Abs.Stmt -> TransM (Seq Stmt)
-transStmt _ = return $ Sq.singleton $ NoBindS (VarE (mkName "pure") `AppE` TupE [])
+transStmt = \case 
+  Abs.STrue {} -> return Sq.empty 
+  Abs.SFalse {} -> return $ Sq.singleton (NoBindS (UnboundVarE (mkName "mempty")))
+  Abs.SAss _ (Abs.UIdent (haskifyVarName -> v)) t -> unifyEq (mkName v) t
+    
+  _ -> return $ Sq.singleton $ NoBindS (VarE (mkName "pure") `AppE` TupE [])
+-- transStmt _ = 
 
 transGroundedTerm :: Abs.Term -> TransM Exp
 transGroundedTerm = \case 
@@ -251,13 +257,15 @@ transGroundedTerm = \case
     return $ ParensE (UInfixE ae (ConE (mkName ":")) be)
   
 unifyEq :: Name -> Abs.Term -> TransM (Seq Stmt)
-unifyEq n t = do
+unifyEq n t = traceShow ("AAA", n, t) $ do
   gn <- findGroundedName n
   case gn of 
     Just n' -> Sq.singleton . NoBindS . UInfixE (VarE n') (UnboundVarE (mkName "==")) <$> transGroundedTerm t
     Nothing -> do
-      markGrounded n 
-      Sq.singleton . BindS (VarP n) . (AppE (UnboundVarE (mkName "pure"))) <$> transGroundedTerm t
+      addAlias n n
+      trace "I'm here" $ markGrounded n 
+      gt <- transGroundedTerm t
+      return $ Sq.singleton $ BindS (VarP n) $ (AppE (UnboundVarE (mkName "pure"))) $ gt
 
 
 patternOfAbsTerm :: Abs.Term -> TransM Pat

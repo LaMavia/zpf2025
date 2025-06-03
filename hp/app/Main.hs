@@ -98,6 +98,9 @@ main = do
     fs         -> mapM_ (runFile 2 pProgram) fs
 
 [hp|
+.decl p(|String).
+p(Y) :- Y = "Hello".
+
 .decl last(a, [a]|).
 last(X, [X]).
 last(X, (_:L)) :- last(X, L).
