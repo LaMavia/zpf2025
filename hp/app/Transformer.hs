@@ -18,7 +18,6 @@ import Data.Maybe (fromMaybe)
 import Control.Monad (forM, zipWithM, forM_)
 import Data.Char (toLower)
 import Data.Foldable (toList)
-import Debug.Trace (traceShow, trace)
 import Data.List (uncons)
 
 {- 
@@ -171,7 +170,7 @@ transBody p nin nout dclauses = do
       [ Clause inPattern (
         NormalB $ 
           foldr 
-            (\x u -> UInfixE x (UnboundVarE (mkName "<|>")) u) 
+            (\x u -> UInfixE x (UnboundVarE (mkName "interleave")) u) 
             (VarE (mkName "mempty"))
             clauses
       ) [] ]
@@ -197,11 +196,11 @@ transClause paramse nin nout (terms, body) = do
   let (inTerms, outTerms) = partitionInOut nin nout terms 
   patterns <- mapM patternOfAbsTerm inTerms
   params <- getParams
-  traceShow params groundParams
+  groundParams
   eqs <- assertEqualAllAliases
   stmts <- transClauseBody body
   epilogue <- generateEpilogue outTerms
-  return $ traceShow stmts $ ParensE
+  return $ ParensE
              (CaseE 
                 paramse
                 [
@@ -222,7 +221,7 @@ transClause paramse nin nout (terms, body) = do
     generateEpilogue ts = do 
       outs <- getOutputs
       pres <- foldr (Sq.><) Sq.empty <$> zipWithM unifyEq outs ts
-      traceShow (outs, pres) $ return $ pres Sq.:|> (NoBindS (VarE (mkName "pure") `AppE` TupE ((Just . VarE) <$> outs)))
+      return $ pres Sq.:|> (NoBindS (VarE (mkName "pure") `AppE` TupE ((Just . VarE) <$> outs)))
 
 
 transClauseBody :: [Abs.Stmt] -> TransM (Seq Stmt)
@@ -318,6 +317,13 @@ transStmt = \case
 
     prepareOutArg :: Abs.Term -> TransM (Pat, Seq Stmt)
     prepareOutArg t = do
+      -- temp <- lNewName "temp"
+      -- let tempP = VarP temp
+      -- let tempE = VarE temp
+      -- (p, appends) <- unifCetBind t tempE 
+      -- return (tempP, appends Sq.>< Sq.fromList [
+      --     BindS p tempE
+      --   ])
       itg <- isTermGrounded t 
       mtn <- freeTermName t
       if itg 
@@ -386,15 +392,56 @@ transGroundedTerm = \case
     return $ ParensE (UInfixE ae (ConE (mkName ":")) be)
   
 unifyEq :: Name -> Abs.Term -> TransM (Seq Stmt)
-unifyEq n t = traceShow ("AAA", n, t) $ do
+unifyEq n t = do
   gn <- findGroundedName n
   case gn of 
     Just n' -> Sq.singleton . NoBindS . UInfixE (VarE n') (UnboundVarE (mkName "==")) <$> transGroundedTerm t
     Nothing -> do
       addAlias n n
-      trace "I'm here" $ markGrounded n 
+      markGrounded n 
       gt <- transGroundedTerm t
       return $ Sq.singleton $ BindS (VarP n) $ (AppE (UnboundVarE (mkName "pure"))) $ gt
+
+unifCetBind :: Abs.Term -> Exp -> TransM (Pat, Seq Stmt)
+unifCetBind targ srce = do
+  case targ of
+    (Abs.TStr {}) -> auxGrounded 
+    (Abs.TInt {}) -> auxGrounded 
+    (Abs.TIgnore {}) -> return (WildP, Sq.empty)
+    (Abs.TVar _ (Abs.UIdent (haskifyVarName -> v))) -> do
+      let vn = mkName v
+      mgn <- findGroundedName vn 
+      case mgn of 
+        Just n -> do 
+          tempn <- lNewName v
+          gs <- guardEq (VarE n) srce
+          return (VarP tempn, Sq.singleton gs)
+        Nothing -> do 
+          n <- lNewName v 
+          addAlias vn n 
+          markGrounded n 
+          return (VarP n, Sq.empty)
+    (Abs.TList _ ts) -> do 
+      temps <- mapM (\_ -> lNewName "temp") ts 
+      rs <- zipWithM unifCetBind ts $ fmap VarE $ temps
+      let (pats, appends) = unzip rs
+      return (
+        ListP (VarP <$> temps), 
+        foldr (Sq.><) (
+          Sq.fromList [
+            BindS (ListP pats) (ListE $ fmap VarE temps) 
+          ]
+          ) appends 
+        )
+
+    
+  where 
+    auxGrounded :: TransM (Pat, Seq Stmt)
+    auxGrounded = do
+      targe <- transGroundedTerm targ
+      guards <- guardEq targe srce
+      pat <- patternOfAbsTerm targ
+      return (pat, Sq.singleton guards)
 
 
 patternOfAbsTerm :: Abs.Term -> TransM Pat
@@ -504,3 +551,6 @@ partitionInOut nin nout xs =
 
 getDecl :: String -> TransM (Maybe Decl)
 getDecl p = gets (M.lookup p . tsProg)
+
+guardEq :: Exp -> Exp -> TransM Stmt
+guardEq a b = return $ NoBindS $ VarE (mkName "guard") `AppE` (ParensE $ UInfixE a (UnboundVarE (mkName "==")) b)

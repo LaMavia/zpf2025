@@ -1,7 +1,5 @@
 entrypoints Program ;
 
--- Test. Test ::= UIdent ;
-
 Program. Program ::= [Def] ;
 terminator nonempty Def "." ;
 

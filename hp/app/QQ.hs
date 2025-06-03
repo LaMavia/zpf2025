@@ -26,7 +26,5 @@ hp = QuasiQuoter {
             Left err -> error (show err)
             Right tree -> do 
               q <- runTransM (runB $ bundle tree) transProg
-              pPrint q
               liftIO (print (ppr_list q))
-              -- pPrint (ppr_list q)
               return q
