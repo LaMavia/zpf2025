@@ -51,6 +51,13 @@ transStmt x = case x of
   Abs.SCall _ lident terms -> failure x
   Abs.SAss _ uident term -> failure x
   Abs.SIs _ uident iexp -> failure x
+  Abs.SRel _ iexp1 relop iexp2 -> failure x
+  Abs.SMod _ term mod lident terms -> failure x
+
+transMod :: Show a => Abs.Mod' a -> Result
+transMod x = case x of
+  Abs.MExt _ -> failure x
+  Abs.MCollect _ -> failure x
 
 transIExp :: Show a => Abs.IExp' a -> Result
 transIExp x = case x of
@@ -59,10 +66,6 @@ transIExp x = case x of
   Abs.IENeg _ iexp -> failure x
   Abs.IEMul _ iexp1 mulop iexp2 -> failure x
   Abs.IEAdd _ iexp1 addop iexp2 -> failure x
-
-transRExp :: Show a => Abs.RExp' a -> Result
-transRExp x = case x of
-  Abs.RERel _ iexp1 relop iexp2 -> failure x
 
 transAddOp :: Show a => Abs.AddOp' a -> Result
 transAddOp x = case x of

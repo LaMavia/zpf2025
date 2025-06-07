@@ -33,15 +33,17 @@ LIdent literals are recognized by the regular expression
 The set of reserved words is the set of terminals appearing in the grammar. Those reserved words that consist of non-letter characters are called symbols, and they are treated in a different way from those that are similar to identifiers. The lexer follows rules familiar from languages like Haskell, C, and Java, including longest match and spacing conventions.
 
 The reserved words used in  are the following:
-  | ``False`` | ``True`` | ``is`` |
+  | ``False`` | ``True`` | ``collect`` | ``ext``
+  | ``is`` |  |  |
 
 The symbols used in  are the following:
   | . | .decl | ( | |
   | ) | [ | ] | ,
-  | :- | = | - | +
-  | * | / | % | <
-  | <= | > | >= | ==
-  | != | _ | : |
+  | :- | = | <[ | ]-
+  | - | + | * | /
+  | % | < | <= | >
+  | >= | == | != | _
+  | : |  |  |
 
 ===Comments===
 Single-line comments begin with %.There are no multiple-line comments in the grammar.
@@ -71,6 +73,10 @@ All other symbols are terminals.
   |  |  **|**  | //LIdent// ``(`` //[Term]// ``)``
   |  |  **|**  | //UIdent// ``=`` //Term//
   |  |  **|**  | //UIdent// ``is`` //IExp//
+  |  |  **|**  | //IExp// //RelOp// //IExp//
+  |  |  **|**  | //Term// ``<[`` //Mod// ``]-`` //LIdent// ``(`` //[Term]// ``)``
+  | //Mod// | -> | ``ext``
+  |  |  **|**  | ``collect``
   | //IExp3// | -> | //UIdent//
   |  |  **|**  | //Integer//
   |  |  **|**  | ``(`` //IExp// ``)``
@@ -80,7 +86,6 @@ All other symbols are terminals.
   |  |  **|**  | //IExp2//
   | //IExp// | -> | //IExp// //AddOp// //IExp1//
   |  |  **|**  | //IExp1//
-  | //RExp// | -> | //IExp// //RelOp// //IExp1//
   | //AddOp// | -> | ``+``
   |  |  **|**  | ``-``
   | //MulOp// | -> | ``*``

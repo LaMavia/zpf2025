@@ -180,6 +180,12 @@ instance Print (Abs.Stmt' a) where
     Abs.SAss _ uident term -> prPrec i 0 (concatD [prt 0 uident, doc (showString "="), prt 0 term])
     Abs.SIs _ uident iexp -> prPrec i 0 (concatD [prt 0 uident, doc (showString "is"), prt 0 iexp])
     Abs.SRel _ iexp1 relop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 relop, prt 0 iexp2])
+    Abs.SMod _ term modifier lident terms -> prPrec i 0 (concatD [prt 0 term, doc (showString "<["), prt 0 modifier, doc (showString "]-"), prt 0 lident, doc (showString "("), prt 0 terms, doc (showString ")")])
+
+instance Print (Abs.Modifier' a) where
+  prt i = \case
+    Abs.MExt _ -> prPrec i 0 (concatD [doc (showString "ext")])
+    Abs.MCollect _ -> prPrec i 0 (concatD [doc (showString "collect")])
 
 instance Print (Abs.IExp' a) where
   prt i = \case

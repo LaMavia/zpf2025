@@ -21,6 +21,10 @@ SCall. Stmt ::= LIdent "(" [Term] ")" ;
 SAss. Stmt ::= UIdent "=" Term ;
 SIs. Stmt ::= UIdent "is" IExp ;
 SRel. Stmt ::= IExp RelOp IExp ;
+SMod. Stmt ::= Term "<[" Modifier "]-" LIdent "(" [Term] ")" ;
+
+MExt. Modifier ::= "ext" ;
+MCollect. Modifier ::= "collect" ; 
 
 IEVar. IExp3 ::= UIdent ;
 IELit. IExp3 ::= Integer ;

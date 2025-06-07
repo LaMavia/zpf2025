@@ -24,54 +24,11 @@ main :: IO ()
 main = undefined
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{-
-
-parent(sarah, john).
-parent(arnold, john).
-parent(john, anne).
-
--}
-
-
 {- Relacyjna klasyka -}
 -- [hp|
 --   % parent(P, C)
 --   .decl parent(|String, String).
 --   parent("Jozek", "Basia").
---   parent("Ela", "Basia").
---   parent("Stasiu", "Ela").
---   parent("Jadwiga", "Ela").
---   parent("Ela", "Zuzia").
 --
 --   .decl grandparent(|String, String).
 --   grandparent(G, C) :- 
@@ -87,25 +44,41 @@ parent(john, anne).
 
 
 {- Prosty graf -}
--- [hp|
---   .decl node(|Int).
---   node(1).
---   node(2).
---   node(3).
---   node(4).
---   node(5).
---
---   .decl edge(|Int, Int).
---   edge(1, 2).
---   edge(2, 3).
---   edge(1, 4).
---
---   .decl reach(Int|Int).
---   reach(X, X) :- node(X).
---   reach(X, Y) :- 
---     edge(X, Z),
---     reach(Z, Y).
--- |]
+[hp|
+  .decl node(|Int).
+  node(1).
+  node(2).
+  node(3).
+  node(4).
+  node(5).
+  node(6).
+  node(7).
+
+  .decl edge(|Int, Int).
+  edge(1, 2).
+  edge(2, 3).
+  edge(3, 4).
+  edge(4, 5).
+  edge(4, 6).
+  edge(1, 4).
+
+  .decl reach(Int|Int).
+  reach(X, X) :- node(X).
+  reach(X, Y) :- 
+    edge(X, Z),
+    reach(Z, Y).
+
+  .decl trails(Int,Int|[Int]).
+  trails(X, X, []).
+  trails(X, Y, (H:T)) :-
+    edge(X, H),
+    trails(H, Y, T).
+
+  .decl trailSum(Int,Int|Int).
+  trailSum(X, Y, S) :-
+    trails(X, Y, Trail),
+    S <[ext]- sum(Trail).
+|]
 {-  -}
 
 
@@ -126,8 +99,8 @@ parent(john, anne).
 --   .decl add(Int,Int|Int).
 --   add(A, B, C) :- C is A + B.
 --
---   .decl q(Int,Int,Int|).
---   q(A,B,C) :- add(A, B, C).
+--   .decl qa(Int,Int,Int|).
+--   qa(A,B,C) :- add(A, B, C).
 -- |]
 
 {- Podstawowe relacje -}
@@ -138,13 +111,29 @@ parent(john, anne).
 
 {- Listy -}
 -- [hp|
+--   .decl hd([a]|a).
+--   hd((X:_), X).
+--
+--   .decl ln([a]|Int).
+--   ln([], 0).
+--   ln((_:T), Len) :- 
+--     ln(T, Len0),
+--     Len is Len0 + 1.
+--
 --   .decl repeat(Int, a | [a]).
 --   repeat(0, _, []).
 --   repeat(N, X, (X:L)) :-
 --     N > 0,
 --     N1 is N - 1,
 --     repeat(N1, X, L).
+--
+--   .decl q(a|a,a).
+--   q(A, B, C) :- repeat(4, A, (A:(B:(C:_)))).
 -- |]
 
-
-
+-- [hp|
+--   .decl beforeOne([Int]|Int).
+--   beforeOne((X:(1:_)), X).
+--   beforeOne((_:T), X) :-
+--     beforeOne(T, X).
+-- |]

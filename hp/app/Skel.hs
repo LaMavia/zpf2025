@@ -52,6 +52,12 @@ transStmt x = case x of
   Abs.SAss _ uident term -> failure x
   Abs.SIs _ uident iexp -> failure x
   Abs.SRel _ iexp1 relop iexp2 -> failure x
+  Abs.SMod _ term modifier lident terms -> failure x
+
+transModifier :: Show a => Abs.Modifier' a -> Result
+transModifier x = case x of
+  Abs.MExt _ -> failure x
+  Abs.MCollect _ -> failure x
 
 transIExp :: Show a => Abs.IExp' a -> Result
 transIExp x = case x of

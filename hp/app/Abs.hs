@@ -49,6 +49,11 @@ data Stmt' a
     | SAss a UIdent (Term' a)
     | SIs a UIdent (IExp' a)
     | SRel a (IExp' a) (RelOp' a) (IExp' a)
+    | SMod a (Term' a) (Modifier' a) LIdent [Term' a]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type Modifier = Modifier' BNFC'Position
+data Modifier' a = MExt a | MCollect a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type IExp = IExp' BNFC'Position
@@ -132,6 +137,12 @@ instance HasPosition Stmt where
     SAss p _ _ -> p
     SIs p _ _ -> p
     SRel p _ _ _ -> p
+    SMod p _ _ _ _ -> p
+
+instance HasPosition Modifier where
+  hasPosition = \case
+    MExt p -> p
+    MCollect p -> p
 
 instance HasPosition IExp where
   hasPosition = \case

@@ -179,6 +179,13 @@ instance Print (Abs.Stmt' a) where
     Abs.SCall _ lident terms -> prPrec i 0 (concatD [prt 0 lident, doc (showString "("), prt 0 terms, doc (showString ")")])
     Abs.SAss _ uident term -> prPrec i 0 (concatD [prt 0 uident, doc (showString "="), prt 0 term])
     Abs.SIs _ uident iexp -> prPrec i 0 (concatD [prt 0 uident, doc (showString "is"), prt 0 iexp])
+    Abs.SRel _ iexp1 relop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 relop, prt 0 iexp2])
+    Abs.SMod _ term mod lident terms -> prPrec i 0 (concatD [prt 0 term, doc (showString "<["), prt 0 mod, doc (showString "]-"), prt 0 lident, doc (showString "("), prt 0 terms, doc (showString ")")])
+
+instance Print (Abs.Mod' a) where
+  prt i = \case
+    Abs.MExt _ -> prPrec i 0 (concatD [doc (showString "ext")])
+    Abs.MCollect _ -> prPrec i 0 (concatD [doc (showString "collect")])
 
 instance Print (Abs.IExp' a) where
   prt i = \case
@@ -187,10 +194,6 @@ instance Print (Abs.IExp' a) where
     Abs.IENeg _ iexp -> prPrec i 2 (concatD [doc (showString "-"), prt 3 iexp])
     Abs.IEMul _ iexp1 mulop iexp2 -> prPrec i 1 (concatD [prt 1 iexp1, prt 0 mulop, prt 2 iexp2])
     Abs.IEAdd _ iexp1 addop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 addop, prt 1 iexp2])
-
-instance Print (Abs.RExp' a) where
-  prt i = \case
-    Abs.RERel _ iexp1 relop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 relop, prt 1 iexp2])
 
 instance Print (Abs.AddOp' a) where
   prt i = \case

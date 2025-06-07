@@ -170,7 +170,7 @@ transBody p nin nout dclauses = do
       [ Clause inPattern (
         NormalB $ 
           foldr 
-            (\x u -> UInfixE x (UnboundVarE (mkName "interleave")) u) 
+            (\x u -> UInfixE x (UnboundVarE (mkName "<|>")) u) 
             (VarE (mkName "mempty"))
             clauses
       ) [] ]
@@ -266,7 +266,7 @@ transStmt = \case
     mn <- findGroundedName xn 
     exp <- transIExp absiexp
     case mn of 
-      Just n -> return $ Sq.singleton $ NoBindS $ (UnboundVarE (mkName "guard")) `AppE` (ParensE (UInfixE (VarE n) (UnboundVarE (mkName "==")) exp)) 
+      Just n -> Sq.singleton <$> guardEq (VarE n) exp
       Nothing -> do
         a <- lNewName x 
         addAlias xn a 
@@ -289,6 +289,30 @@ transStmt = \case
     return $ Sq.fromList [
       NoBindS (UnboundVarE (mkName "guard") `AppE` ParensE (UInfixE ae (UnboundVarE opn) be))
       ]
+  Abs.SMod _ t mod (Abs.LIdent proc) argTerms -> do
+    (rp, ra) <- prepareOutArg t 
+    case mod of
+      Abs.MExt {} -> do 
+        argExps <- mapM transGroundedTerm argTerms
+        return $ Sq.fromList [
+            BindS rp $ (UnboundVarE (mkName "pure")) `AppE` foldl AppE (UnboundVarE (mkName proc)) argExps
+          ] Sq.>< ra
+      -- Abs.MCollect {} -> do 
+      --   retstmts <- transStmt (Abs.SCall Nothing (Abs.LIdent proc) argTerms)
+      --   mprocdec <- getDecl proc 
+      --   case mprocdec of 
+      --     Nothing -> error $ showString "Unknown procedure name: " proc 
+      --     Just (Decl {dIn=pin, dOut=pout}) -> do
+      --       let npout = length pout
+      --       let (inArgs, outArgs) = partitionInOut npin npout argTerms
+      --       inExps <- mapM transGroundedTerm inArgs
+      --       (outPats, outAppends) <- unzip <$> mapM prepareOutArg outArgs
+      --       let outAppend = foldr (Sq.><) Sq.empty outAppends
+      --       return $ Sq.fromList [
+      --           BindS rp $ (UnboundVarE (mkName "pure")) `AppE` UnboundVarE (mkName "observeAll") `AppE` DoE Nothing retstmts
+      --         ] Sq.>< ra 
+
+
 
   where 
     isTermGrounded :: Abs.Term -> TransM Bool 
@@ -316,32 +340,51 @@ transStmt = \case
       _ -> pure Nothing
 
     prepareOutArg :: Abs.Term -> TransM (Pat, Seq Stmt)
-    prepareOutArg t = do
-      -- temp <- lNewName "temp"
-      -- let tempP = VarP temp
-      -- let tempE = VarE temp
-      -- (p, appends) <- unifCetBind t tempE 
-      -- return (tempP, appends Sq.>< Sq.fromList [
-      --     BindS p tempE
-      --   ])
-      itg <- isTermGrounded t 
-      mtn <- freeTermName t
-      if itg 
-        then (do 
-          te <- transGroundedTerm t
-          temp <- lNewName "temp"
-          markGrounded temp
-          return (
-            VarP temp,
-            Sq.singleton $ NoBindS $ (UnboundVarE (mkName "guard")) `AppE` (ParensE $ UInfixE (VarE temp) (UnboundVarE (mkName "==")) te) 
-            )
-        )
-        else case mtn of 
-              Just n -> do 
-                addAlias n n -- ???
-                markGrounded n
-                return (VarP n, Sq.empty)
-              Nothing -> error $ showString "Complicated term: " $ shows t "."
+    prepareOutArg = \case 
+      (Abs.TStr _ str) -> return (LitP (StringL str), Sq.empty)
+      (Abs.TInt _ int) -> return (LitP (IntegerL int), Sq.empty)
+      (Abs.TVar _ (Abs.UIdent (haskifyVarName -> v))) -> do
+        let vn = mkName v
+        mgn <- findGroundedName vn 
+        case mgn of 
+          (Just n) -> do
+            temp <- lNewName v 
+            g <- guardEq (VarE temp) (VarE n)
+            return (VarP temp, Sq.singleton g)
+          Nothing -> do
+            a <- lNewName v 
+            addAlias vn a 
+            markGrounded vn 
+            return (VarP a, Sq.empty)
+      (Abs.TList _ ts) -> do 
+        (pats, appends) <- unzip <$> mapM prepareOutArg ts 
+        let append = foldr (Sq.><) Sq.empty appends 
+        return (ListP pats, append)
+      (Abs.TCons _ a b) -> do
+        (ap, aa) <- prepareOutArg a 
+        (bp, ba) <- prepareOutArg b
+        return (UInfixP ap (mkName ":") bp, aa Sq.>< ba)
+      (Abs.TIgnore {}) -> return (WildP, Sq.empty)
+
+
+      -- itg <- isTermGrounded t 
+      -- mtn <- freeTermName t
+      -- if itg 
+      --   then (do 
+      --     te <- transGroundedTerm t
+      --     temp <- lNewName "temp"
+      --     markGrounded temp
+      --     return (
+      --       VarP temp,
+      --       Sq.singleton $ NoBindS $ (UnboundVarE (mkName "guard")) `AppE` (ParensE $ UInfixE (VarE temp) (UnboundVarE (mkName "==")) te) 
+      --       )
+      --   )
+      --   else case mtn of 
+      --         Just n -> do 
+      --           addAlias n n -- ???
+      --           markGrounded n
+      --           return (VarP n, Sq.empty)
+      --         Nothing -> error $ showString "Complicated term: " $ shows t "."
                 
 transIExp :: Abs.IExp -> TransM Exp
 transIExp = \case 
@@ -402,46 +445,47 @@ unifyEq n t = do
       gt <- transGroundedTerm t
       return $ Sq.singleton $ BindS (VarP n) $ (AppE (UnboundVarE (mkName "pure"))) $ gt
 
-unifCetBind :: Abs.Term -> Exp -> TransM (Pat, Seq Stmt)
-unifCetBind targ srce = do
-  case targ of
-    (Abs.TStr {}) -> auxGrounded 
-    (Abs.TInt {}) -> auxGrounded 
-    (Abs.TIgnore {}) -> return (WildP, Sq.empty)
-    (Abs.TVar _ (Abs.UIdent (haskifyVarName -> v))) -> do
-      let vn = mkName v
-      mgn <- findGroundedName vn 
-      case mgn of 
-        Just n -> do 
-          tempn <- lNewName v
-          gs <- guardEq (VarE n) srce
-          return (VarP tempn, Sq.singleton gs)
-        Nothing -> do 
-          n <- lNewName v 
-          addAlias vn n 
-          markGrounded n 
-          return (VarP n, Sq.empty)
-    (Abs.TList _ ts) -> do 
-      temps <- mapM (\_ -> lNewName "temp") ts 
-      rs <- zipWithM unifCetBind ts $ fmap VarE $ temps
-      let (pats, appends) = unzip rs
-      return (
-        ListP (VarP <$> temps), 
-        foldr (Sq.><) (
-          Sq.fromList [
-            BindS (ListP pats) (ListE $ fmap VarE temps) 
-          ]
-          ) appends 
-        )
-
-    
-  where 
-    auxGrounded :: TransM (Pat, Seq Stmt)
-    auxGrounded = do
-      targe <- transGroundedTerm targ
-      guards <- guardEq targe srce
-      pat <- patternOfAbsTerm targ
-      return (pat, Sq.singleton guards)
+-- unifCetBind :: Abs.Term -> Exp -> TransM (Pat, Seq Stmt)
+-- unifCetBind targ srce = do
+--   case targ of
+--     (Abs.TStr {}) -> auxGrounded 
+--     (Abs.TInt {}) -> auxGrounded 
+--     (Abs.TIgnore {}) -> return (WildP, Sq.empty)
+--     (Abs.TVar _ (Abs.UIdent (haskifyVarName -> v))) -> do
+--       let vn = mkName v
+--       mgn <- findGroundedName vn 
+--       case mgn of 
+--         Just n -> do 
+--           tempn <- lNewName v
+--           gs <- guardEq (VarE n) srce
+--           return (VarP tempn, Sq.singleton gs)
+--         Nothing -> do 
+--           n <- lNewName v 
+--           addAlias vn n 
+--           markGrounded n 
+--           markGrounded vn
+--           return (VarP n, Sq.empty)
+--     (Abs.TList _ ts) -> do 
+--       temps <- mapM (\_ -> lNewName "temp") ts 
+--       rs <- zipWithM unifCetBind ts $ fmap VarE $ temps
+--       let (pats, appends) = unzip rs
+--       return (
+--         ListP (VarP <$> temps), 
+--         foldr (Sq.><) (
+--           Sq.fromList [
+--             BindS (ListP pats) (ListE $ fmap VarE temps) 
+--           ]
+--           ) appends 
+--         )
+--
+--
+--   where 
+--     auxGrounded :: TransM (Pat, Seq Stmt)
+--     auxGrounded = do
+--       targe <- transGroundedTerm targ
+--       guards <- guardEq targe srce
+--       pat <- patternOfAbsTerm targ
+--       return (pat, Sq.singleton guards)
 
 
 patternOfAbsTerm :: Abs.Term -> TransM Pat

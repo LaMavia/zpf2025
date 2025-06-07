@@ -48,6 +48,12 @@ data Stmt' a
     | SCall a LIdent [Term' a]
     | SAss a UIdent (Term' a)
     | SIs a UIdent (IExp' a)
+    | SRel a (IExp' a) (RelOp' a) (IExp' a)
+    | SMod a (Term' a) (Mod' a) LIdent [Term' a]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type Mod = Mod' BNFC'Position
+data Mod' a = MExt a | MCollect a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type IExp = IExp' BNFC'Position
@@ -57,10 +63,6 @@ data IExp' a
     | IENeg a (IExp' a)
     | IEMul a (IExp' a) (MulOp' a) (IExp' a)
     | IEAdd a (IExp' a) (AddOp' a) (IExp' a)
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
-
-type RExp = RExp' BNFC'Position
-data RExp' a = RERel a (IExp' a) (RelOp' a) (IExp' a)
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type AddOp = AddOp' BNFC'Position
@@ -134,6 +136,13 @@ instance HasPosition Stmt where
     SCall p _ _ -> p
     SAss p _ _ -> p
     SIs p _ _ -> p
+    SRel p _ _ _ -> p
+    SMod p _ _ _ _ -> p
+
+instance HasPosition Mod where
+  hasPosition = \case
+    MExt p -> p
+    MCollect p -> p
 
 instance HasPosition IExp where
   hasPosition = \case
@@ -142,10 +151,6 @@ instance HasPosition IExp where
     IENeg p _ -> p
     IEMul p _ _ _ -> p
     IEAdd p _ _ _ -> p
-
-instance HasPosition RExp where
-  hasPosition = \case
-    RERel p _ _ _ -> p
 
 instance HasPosition AddOp where
   hasPosition = \case

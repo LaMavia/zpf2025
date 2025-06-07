@@ -23,36 +23,40 @@ import Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '!='     { PT _ (TS _ 1)     }
-  '%'      { PT _ (TS _ 2)     }
-  '('      { PT _ (TS _ 3)     }
-  ')'      { PT _ (TS _ 4)     }
-  '*'      { PT _ (TS _ 5)     }
-  '+'      { PT _ (TS _ 6)     }
-  ','      { PT _ (TS _ 7)     }
-  '-'      { PT _ (TS _ 8)     }
-  '.'      { PT _ (TS _ 9)     }
-  '.decl'  { PT _ (TS _ 10)    }
-  '/'      { PT _ (TS _ 11)    }
-  ':'      { PT _ (TS _ 12)    }
-  ':-'     { PT _ (TS _ 13)    }
-  '<'      { PT _ (TS _ 14)    }
-  '<='     { PT _ (TS _ 15)    }
-  '='      { PT _ (TS _ 16)    }
-  '=='     { PT _ (TS _ 17)    }
-  '>'      { PT _ (TS _ 18)    }
-  '>='     { PT _ (TS _ 19)    }
-  'False'  { PT _ (TS _ 20)    }
-  'True'   { PT _ (TS _ 21)    }
-  '['      { PT _ (TS _ 22)    }
-  ']'      { PT _ (TS _ 23)    }
-  '_'      { PT _ (TS _ 24)    }
-  'is'     { PT _ (TS _ 25)    }
-  '|'      { PT _ (TS _ 26)    }
-  L_integ  { PT _ (TI _)       }
-  L_quoted { PT _ (TL _)       }
-  L_UIdent { PT _ (T_UIdent _) }
-  L_LIdent { PT _ (T_LIdent _) }
+  '!='      { PT _ (TS _ 1)     }
+  '%'       { PT _ (TS _ 2)     }
+  '('       { PT _ (TS _ 3)     }
+  ')'       { PT _ (TS _ 4)     }
+  '*'       { PT _ (TS _ 5)     }
+  '+'       { PT _ (TS _ 6)     }
+  ','       { PT _ (TS _ 7)     }
+  '-'       { PT _ (TS _ 8)     }
+  '.'       { PT _ (TS _ 9)     }
+  '.decl'   { PT _ (TS _ 10)    }
+  '/'       { PT _ (TS _ 11)    }
+  ':'       { PT _ (TS _ 12)    }
+  ':-'      { PT _ (TS _ 13)    }
+  '<'       { PT _ (TS _ 14)    }
+  '<='      { PT _ (TS _ 15)    }
+  '<['      { PT _ (TS _ 16)    }
+  '='       { PT _ (TS _ 17)    }
+  '=='      { PT _ (TS _ 18)    }
+  '>'       { PT _ (TS _ 19)    }
+  '>='      { PT _ (TS _ 20)    }
+  'False'   { PT _ (TS _ 21)    }
+  'True'    { PT _ (TS _ 22)    }
+  '['       { PT _ (TS _ 23)    }
+  ']'       { PT _ (TS _ 24)    }
+  ']-'      { PT _ (TS _ 25)    }
+  '_'       { PT _ (TS _ 26)    }
+  'collect' { PT _ (TS _ 27)    }
+  'ext'     { PT _ (TS _ 28)    }
+  'is'      { PT _ (TS _ 29)    }
+  '|'       { PT _ (TS _ 30)    }
+  L_integ   { PT _ (TI _)       }
+  L_quoted  { PT _ (TL _)       }
+  L_UIdent  { PT _ (T_UIdent _) }
+  L_LIdent  { PT _ (T_LIdent _) }
 
 %%
 
@@ -107,6 +111,12 @@ Stmt
   | UIdent '=' Term { (fst $1, Abs.SAss (fst $1) (snd $1) (snd $3)) }
   | UIdent 'is' IExp { (fst $1, Abs.SIs (fst $1) (snd $1) (snd $3)) }
   | IExp RelOp IExp { (fst $1, Abs.SRel (fst $1) (snd $1) (snd $2) (snd $3)) }
+  | Term '<[' Modifier ']-' LIdent '(' ListTerm ')' { (fst $1, Abs.SMod (fst $1) (snd $1) (snd $3) (snd $5) (snd $7)) }
+
+Modifier :: { (Abs.BNFC'Position, Abs.Modifier) }
+Modifier
+  : 'ext' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MExt (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | 'collect' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MCollect (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
 
 IExp3 :: { (Abs.BNFC'Position, Abs.IExp) }
 IExp3
