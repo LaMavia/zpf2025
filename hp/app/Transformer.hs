@@ -9,13 +9,13 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Abs as Abs
 import Bundler ( Decl (..), Prog, DClause, tupleType )
-import Control.Monad.Logic (LogicT, Logic)
+import Control.Monad.Logic (LogicT, Logic, once)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.Sequence as Sq
 import Data.Sequence (Seq)
 import Text.Pretty.Simple (pPrint)
 import Data.Maybe (fromMaybe)
-import Control.Monad (forM, zipWithM, forM_, when, guard)
+import Control.Monad (forM, zipWithM, forM_, when, guard, unless)
 import Data.Char (toLower)
 import Data.Foldable (toList)
 import Data.List (uncons)
@@ -184,34 +184,10 @@ transStmt = \case
   Abs.SFalse {} -> return $ Sq.singleton (NoBindS (UnboundVarE 'mempty))
   Abs.SAss _ (Abs.UIdent (haskifyVarName -> v)) t -> unifyEq (mkName v) t
   Abs.SCall _ (Abs.LIdent p) argTerms -> do 
-    let pn = mkName p
-    md  <- getDecl p
-    case md of 
-      Nothing -> error $ showString "Unknown predicate «" $ showString p $ "»"
-      Just (Decl {dIn=pin, dOut=pout}) -> do
-        let npin = length pin
-        let npout = length pout
-        let (inArgs, outArgs) = partitionInOut npin npout argTerms
-        inExps <- mapM transGroundedTerm inArgs
-        (outPats, outAppends) <- unzip <$> mapM prepareOutArg outArgs
-        let outAppend = foldr (Sq.><) Sq.empty outAppends
-        {- all inArgs need to be grounded, just pass them, no guards -}
-
-        {- for now assume that every outArg is either fully grounded or fully free -}
-        {-
-          for arg in outArgs {
-            if isGrounded(arg) {
-              pass new var `temp_arg` in place of arg,
-              append { guard (temp_arg == arg) }
-            } else if isFree(arg) {
-              pass arg to call
-              markGrounded arg
-            }
-          }
-        -}
-        return $ Sq.fromList [
-          BindS (tuplePattern outPats) $ (UnboundVarE pn) `AppE` tupleExp inExps
-          ] Sq.>< outAppend 
+    (outPats, pn, inExps, outAppend) <- genCallStmt p argTerms
+    return $ Sq.fromList [
+      BindS (tuplePattern outPats) $ (UnboundVarE pn) `AppE` tupleExp inExps
+      ] Sq.>< outAppend 
   Abs.SIs _ (Abs.UIdent (haskifyVarName -> x)) absiexp -> do 
     let xn = mkName x
     mn <- findGroundedName xn 
@@ -251,6 +227,12 @@ transStmt = \case
         return $ Sq.fromList [
             BindS (rps !! 0) $ pureE `AppE` foldl AppE (UnboundVarE (mkName proc)) argExps
           ] Sq.>< ra
+      Abs.MOnce {} -> do
+        unless (null rps) $ error $ showString "Once call expected no outputs but got «" $ show (length rps) 
+        (outPats, procn, inExps, append) <- genCallStmt proc argTerms        
+        return $ Sq.fromList [
+            BindS (tuplePattern outPats) $ UnboundVarE 'once `AppE` ((UnboundVarE procn) `AppE` tupleExp inExps)
+          ] Sq.>< append
       -- Abs.MCollect {} -> do 
       --   mprocdec <- getDecl proc 
       --   case mprocdec of 
@@ -307,6 +289,22 @@ transStmt = \case
         (tps, tas) <- unzip <$> mapM prepareOutArg ts 
         let ta = foldr (Sq.><) Sq.empty tas 
         return (ConP conn [] tps, ta)
+
+    genCallStmt :: String -> [Abs.Term] -> TransM ([Pat], Name, [Exp], Seq Stmt)
+    genCallStmt p argTerms = do 
+      let pn = mkName p
+      md  <- getDecl p
+      case md of 
+        Nothing -> error $ showString "Unknown predicate «" $ showString p $ "»"
+        Just (Decl {dIn=pin, dOut=pout}) -> do
+          let npin = length pin
+          let npout = length pout
+          let (inArgs, outArgs) = partitionInOut npin npout argTerms
+          inExps <- mapM transGroundedTerm inArgs
+          (outPats, outAppends) <- unzip <$> mapM prepareOutArg outArgs
+          let outAppend = foldr (Sq.><) Sq.empty outAppends
+          return (outPats, pn, inExps, outAppend)
+
 
 transIExp :: Abs.IExp -> TransM Exp
 transIExp = \case 

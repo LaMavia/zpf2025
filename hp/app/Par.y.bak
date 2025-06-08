@@ -167,6 +167,7 @@ Term
   | '[' ListTerm ']' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TList (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
   | '(' Term ':' Term ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TCons (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4)) }
   | '(' ListTerm ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TTup (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
+  | UIdent '(' ListTerm ')' { (fst $1, Abs.TConstr (fst $1) (snd $1) (snd $3)) }
 
 ListTerm :: { (Abs.BNFC'Position, [Abs.Term]) }
 ListTerm

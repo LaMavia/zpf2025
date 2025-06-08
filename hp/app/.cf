@@ -26,6 +26,7 @@ SMod. Stmt ::= Modifier "(" [Term] ")" ":" LIdent "(" [Term] ")" ;
 
 MExt. Modifier ::= "ext" ;
 MCollect. Modifier ::= "collect"; 
+MOnce. Modifier ::= "once" ;
 
 IEVar. IExp3 ::= UIdent ;
 IELit. IExp3 ::= Integer ;

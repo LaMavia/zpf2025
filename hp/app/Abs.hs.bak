@@ -87,6 +87,7 @@ data Term' a
     | TList a [Term' a]
     | TCons a (Term' a) (Term' a)
     | TTup a [Term' a]
+    | TConstr a UIdent [Term' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 newtype UIdent = UIdent String
@@ -184,4 +185,5 @@ instance HasPosition Term where
     TList p _ -> p
     TCons p _ _ -> p
     TTup p _ -> p
+    TConstr p _ _ -> p
 

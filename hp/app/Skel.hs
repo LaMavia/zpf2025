@@ -59,6 +59,7 @@ transModifier :: Show a => Abs.Modifier' a -> Result
 transModifier x = case x of
   Abs.MExt _ -> failure x
   Abs.MCollect _ -> failure x
+  Abs.MOnce _ -> failure x
 
 transIExp :: Show a => Abs.IExp' a -> Result
 transIExp x = case x of

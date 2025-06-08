@@ -50,7 +50,8 @@ import Lex
   'collect' { PT _ (TS _ 25)    }
   'ext'     { PT _ (TS _ 26)    }
   'is'      { PT _ (TS _ 27)    }
-  '|'       { PT _ (TS _ 28)    }
+  'once'    { PT _ (TS _ 28)    }
+  '|'       { PT _ (TS _ 29)    }
   L_integ   { PT _ (TI _)       }
   L_quoted  { PT _ (TL _)       }
   L_UIdent  { PT _ (T_UIdent _) }
@@ -116,6 +117,7 @@ Modifier :: { (Abs.BNFC'Position, Abs.Modifier) }
 Modifier
   : 'ext' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MExt (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
   | 'collect' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MCollect (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
+  | 'once' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MOnce (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
 
 IExp3 :: { (Abs.BNFC'Position, Abs.IExp) }
 IExp3

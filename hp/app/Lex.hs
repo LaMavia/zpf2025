@@ -465,13 +465,13 @@ resWords =
        (b ":" 12
           (b ".decl" 10 (b "." 9 N N) (b "/" 11 N N))
           (b "<" 14 (b ":-" 13 N N) N)))
-    (b "[" 22
+    (b "]" 23
        (b ">=" 19
           (b "==" 17 (b "=" 16 N N) (b ">" 18 N N))
-          (b "True" 21 (b "False" 20 N N) N))
-       (b "ext" 26
-          (b "_" 24 (b "]" 23 N N) (b "collect" 25 N N))
-          (b "|" 28 (b "is" 27 N N) N)))
+          (b "True" 21 (b "False" 20 N N) (b "[" 22 N N)))
+       (b "is" 27
+          (b "collect" 25 (b "_" 24 N N) (b "ext" 26 N N))
+          (b "|" 29 (b "once" 28 N N) N)))
   where
   b s n = B bs (TS bs n)
     where

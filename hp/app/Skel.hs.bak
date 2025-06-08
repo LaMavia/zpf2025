@@ -97,3 +97,4 @@ transTerm x = case x of
   Abs.TList _ terms -> failure x
   Abs.TCons _ term1 term2 -> failure x
   Abs.TTup _ terms -> failure x
+  Abs.TConstr _ uident terms -> failure x
