@@ -40,7 +40,7 @@ main = undefined
 -- |]
 {- gpQuery (MkSolo "Stasiu") -}
 
-data Tree a = Leaf a | Node (Tree a) a (Tree a)
+data Tree a = Leaf a | Node (Tree a) a (Tree a) deriving (Eq)
 
 sumid :: Num a => [a] -> ([a], a)
 sumid xs = (xs, sum xs)
@@ -52,6 +52,9 @@ sumid xs = (xs, sum xs)
     treepaths(L, T).
   treepaths(Node(_, X, R), (X:T)) :-
     treepaths(R, T).
+  .decl issymm(Tree(a)|).
+  issymm(Leaf(_)).
+  issymm(Node(X, _, X)).
 |]
 
 {- Prosty graf -}

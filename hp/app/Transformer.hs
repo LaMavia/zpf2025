@@ -20,73 +20,6 @@ import Data.Char (toLower)
 import Data.Foldable (toList)
 import Data.List (uncons)
 
-{- 
-RULES:
-
-% V - term vars  
-% isGrounded({G}, t) = V(t) `subset` vars(G)
-% isVar - is a simple variable, ie []
-% tild({G}, t) = if not isGrounded(t) { t } else { tilded(t) }
-
-Stmt:
-  (G, [| True |])
-  --------------- (True)
-
-
-
-  (G, [| False |])
-  ---------------- (False) 
-  output { empty } % equivalent to `guard False`
-
-
-  (G, [| p(x1..xn, y1..ym) |]) | p(p1..pn | q1..qm) in G
-  ------------------------------------------------------ (Predicate Call) 
-  for i = 1..m {
-    % dopracuj dla pół ustalonych np. [X_Ungrounded, T_Grounded].
-    % jakieś szukanie maksymalnego ustalonego poddrzewa
-    if isGrounded(yi) && not isVar(yi) {
-      output {
-         let $ti = $yi 
-      } 
-      G.vars += ti
-    }
-  }
-
-  output {
-    (${ map tild {y1..ym} },) <- p (x1..xn)
-  }
-
-  for i = 1..m {
-    if ti in vars G {
-      output { guard (${tilded yi} == ti) }
-    } 
-  }
-
-  for i = 1..m {
-    % precalculate the set of grounded variables
-    G.vars = G.vars `union` V(tild yi)
-  }
-
-
-  (G, [| p(x1..xn, y1..ym) |]) | p(p1..pn | q1..qm) not in G
-  ---------------------------------------------------------- (Procedure Call) 
-  output {
-    _ <- p(x1..xn, y1..ym)
-  }
-
-
-  (G, [| X = T |]) | isGrounded(X) && isGrounded(T)
-  -------------------------------- (Grounded Ass.)
-  output { guard (X == T) }
-
-
-  (G, [| X = T |]) | not isGrounded(X) && isGrounded(T) 
-  ----------------------------------------------------- (Ungrounded Ass.)
-  % again, consider semi-grouned X
-  output { let X = T }
-
--}
-
 type LogicIO = LogicT IO
 
 {- For names use lookupValueName -}
@@ -208,22 +141,25 @@ transClause paramse nin nout (terms, body) = do
   eqs <- assertEqualAllAliases
   stmts <- transClauseBody body
   epilogue <- generateEpilogue outTerms
-  return $ ParensE
-             (CaseE 
-                paramse
-                [
-                  Match 
-                    (TupP patterns)
-                    (NormalB 
-                      $ DoE Nothing $ toList $ eqs Sq.>< stmts Sq.>< epilogue 
-                    )
-                    [],
-                  Match 
-                    WildP
-                    (NormalB $ VarE (mkName  "mempty"))
-                    []
-                ]
-             )
+  return $ ParensE $ DoE Nothing $ toList $ Sq.fromList [
+      BindS (TupP patterns) $ (UnboundVarE (mkName "pure")) `AppE` paramse  
+    ] Sq.>< eqs Sq.>< stmts Sq.>< epilogue
+  -- return $ ParensE
+  --            (CaseE 
+  --               paramse
+  --               [
+  --                 Match 
+  --                   (TupP patterns)
+  --                   (NormalB 
+  --                     $ DoE Nothing $ toList $ eqs Sq.>< stmts Sq.>< epilogue 
+  --                   )
+  --                   [],
+  --                 Match 
+  --                   WildP
+  --                   (NormalB $ VarE (mkName  "mempty"))
+  --                   []
+  --               ]
+  --            )
   where 
     generateEpilogue :: [Abs.Term] -> TransM (Seq Stmt)
     generateEpilogue ts = do 
