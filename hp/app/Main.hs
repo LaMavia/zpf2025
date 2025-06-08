@@ -135,43 +135,43 @@ sumid xs = (xs, sum xs)
 -- |]
 
 {- Listy -}
--- [hp|
---   .decl hd([a]|a).
---   hd((X:_), X).
---
---   .decl ln([a]|Int).
---   ln([], 0).
---   ln((_:T), Len) :- 
---     ln(T, Len0),
---     Len is Len0 + 1.
---
---
---   .decl repeat(Int, a | [a]).
---   repeat(0, _, []).
---   repeat(N, X, (X:L)) :-
---     N > 0,
---     N1 is N - 1,
---     repeat(N1, X, L).
--- |]
+[hp|
+  .decl hd([a]|a).
+  hd((X:_), X).
+
+  .decl ln([a]|Int).
+  ln([], 0).
+  ln((_:T), Len) :- 
+    ln(T, Len0),
+    Len is Len0 + 1.
 
 
--- [hp|
--- .decl maxim[Ord(a)]([a] | a).
--- maxim((H:T), M) :-
---   maximAux(T, H, M).
---
--- .decl maximAux[Ord(a)]([a], a | a).
--- maximAux([], M, M).
--- maximAux((H:T), CM, M) :-
---   H < CM,
---   maximAux(T, CM, M).
--- maximAux((H:T), CM, M) :-
---   H >= CM,
---   maximAux(T, H, M).
---
--- .decl x[Ord(a), Eq(a)](a | a).
--- x(A, A).
--- |]
+  .decl repeat(Int, a | [a]).
+  repeat(0, _, []).
+  repeat(N, X, (X:L)) :-
+    N > 0,
+    N1 is N - 1,
+    repeat(N1, X, L).
+|]
+
+
+[hp|
+.decl maxim[Ord(a)]([a] | a).
+maxim((H:T), M) :-
+  maximAux(T, H, M).
+
+.decl maximAux[Ord(a)]([a], a | a).
+maximAux([], M, M).
+maximAux((H:T), CM, M) :-
+  H < CM,
+  maximAux(T, CM, M).
+maximAux((H:T), CM, M) :-
+  H >= CM,
+  maximAux(T, H, M).
+
+.decl x[Ord(a), Eq(a)](a | a).
+x(A, A).
+|]
 
 [hp|
   .decl cumsum[Num(a)]([a] | [a]).

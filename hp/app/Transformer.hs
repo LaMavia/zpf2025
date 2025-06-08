@@ -47,7 +47,6 @@ runTransM prog m = fst <$> runStateT m s0
             , tsAliases = M.empty
             , tsGroundedAliases = M.empty
             , tsParams = []
-            , tsOutputs = []
             , tsProg = prog
             }
 
@@ -79,10 +78,6 @@ transBody p nin nout dclauses = do
   paramn <- lNewName "input"
   let paramse = VarE paramn
   let inPattern = [VarP paramn]
-
-  mapM_ genOutput [1..nout]
-  reverseOutputs
-
   clauses <- mapM (scoped . transClause paramse nin nout) dclauses
   if null clauses
     then 
@@ -105,14 +100,6 @@ transBody p nin nout dclauses = do
       prependParam n
       return (VarP n) 
 
-    genOutput :: Int -> TransM Name
-    genOutput i = do
-      n <- lNewName (showString "out" $ show i)
-      prependOutput n
-      return n
-
-
-
 
 transClause :: Exp -> Int -> Int -> DClause -> TransM Exp
 transClause paramse nin nout (terms, body) = do 
@@ -123,34 +110,13 @@ transClause paramse nin nout (terms, body) = do
   eqs <- assertEqualAllAliases
   stmts <- transClauseBody body
   epilogue <- generateEpilogue outTerms
-  return $ ParensE $ DoE Nothing $ toList $ Sq.fromList [
-      BindS (tuplePattern patterns) $ pureE `AppE` paramse  
-    ] Sq.>< eqs Sq.>< stmts Sq.>< epilogue
-  -- return $ ParensE
-  --            (CaseE 
-  --               paramse
-  --               [
-  --                 Match 
-  --                   (TupP patterns)
-  --                   (NormalB 
-  --                     $ DoE Nothing $ toList $ eqs Sq.>< stmts Sq.>< epilogue 
-  --                   )
-  --                   [],
-  --                 Match 
-  --                   WildP
-  --                   (NormalB $ VarE (mkName  "mempty"))
-  --                   []
-  --               ]
-  --            )
+  let inpStmt = if null patterns then Sq.empty else Sq.fromList [BindS (tuplePattern patterns) $ pureE `AppE` paramse] 
+  return $ ParensE $ DoE Nothing $ toList $ inpStmt Sq.>< eqs Sq.>< stmts Sq.>< epilogue
   where 
     generateEpilogue :: [Abs.Term] -> TransM (Seq Stmt)
     generateEpilogue ts = do 
-      outs <- getOutputs
-      let ret = NoBindS (pureE `AppE` tupleExp (VarE <$> outs))
-      pres <- foldr (Sq.><) Sq.empty <$> zipWithM unifyEq outs ts
-      return $ pres Sq.:|> ret
-      -- es <- mapM transGroundedTerm ts
-      -- return $ Sq.fromList [(LetS [ValD (VarP o) (NormalB e) [] | o <- outs, e <- es]), ret]
+      es <- mapM transGroundedTerm ts
+      return $ Sq.singleton $ NoBindS $ pureE `AppE` tupleExp es
 
 
 transClauseBody :: [Abs.Stmt] -> TransM (Seq Stmt)
@@ -232,8 +198,6 @@ transStmt = \case
               []
             ]
           ]
-
-
   where 
     genUnzip :: Int -> TransM (Exp -> Exp)
     genUnzip 0 = return id 
@@ -408,12 +372,6 @@ prependParam n = modify (\s -> s { tsParams = n:tsParams s })
 reverseParams :: TransM ()
 reverseParams = modify (\s -> s { tsParams = reverse (tsParams s) })
 
-prependOutput :: Name -> TransM ()
-prependOutput n = modify (\s -> s { tsOutputs = n:tsOutputs s })
-
-reverseOutputs :: TransM ()
-reverseOutputs = modify (\s -> s { tsOutputs = reverse (tsOutputs s) })
-
 scoped :: TransM a -> TransM a
 scoped m = do
   s <- get 
@@ -429,9 +387,6 @@ getAliases n = gets (M.findWithDefault S.empty n . tsAliases)
 
 getParams :: TransM [Name]
 getParams = gets tsParams
-
-getOutputs :: TransM [Name]
-getOutputs = gets tsOutputs
 
 assertEqualAllAliases :: TransM (Seq Stmt)
 assertEqualAllAliases = do 
