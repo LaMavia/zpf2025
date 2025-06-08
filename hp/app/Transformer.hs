@@ -77,7 +77,7 @@ transBody :: Name -> Int -> Int -> [DClause] -> TransM Dec
 transBody p nin nout dclauses = do 
   paramn <- lNewName "input"
   let paramse = VarE paramn
-  let inPattern = [VarP paramn]
+  let inPattern = if nin == 0 then [tuplePattern []] else [VarP paramn]
   clauses <- mapM (scoped . transClause paramse nin nout) dclauses
   if null clauses
     then 
