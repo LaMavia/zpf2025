@@ -70,7 +70,7 @@ haskt = \case
   A.TAGen _ (A.LIdent x) -> VarT (mkName x)
   A.TAList _ t -> ListT `AppT` (haskt t)
   A.TAApp _ ft xs ->  foldl AppT (haskt ft) $ fmap haskt xs
-  A.TATup _ ts -> foldl AppT (TupleT (length ts)) $ fmap haskt ts 
+  A.TATup _ ts -> tupleType $ fmap haskt ts 
 
 typeVars :: A.TypeArg -> Set Name
 typeVars = \case
@@ -80,4 +80,6 @@ typeVars = \case
   A.TAApp _ ft xs -> foldr S.union (typeVars ft) $ fmap typeVars xs
   A.TATup _ ts -> foldr S.union S.empty $ fmap typeVars ts
 
-
+tupleType :: [Type] -> Type
+tupleType [t] = t
+tupleType ts = foldl AppT (TupleT (length ts)) ts

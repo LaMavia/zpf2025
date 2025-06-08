@@ -8,17 +8,18 @@ import Data.Set (Set)
 import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Abs as Abs
-import Bundler ( Decl (..), Prog, DClause )
+import Bundler ( Decl (..), Prog, DClause, tupleType )
 import Control.Monad.Logic (LogicT, Logic)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.Sequence as Sq
 import Data.Sequence (Seq)
 import Text.Pretty.Simple (pPrint)
 import Data.Maybe (fromMaybe)
-import Control.Monad (forM, zipWithM, forM_, when)
+import Control.Monad (forM, zipWithM, forM_, when, guard)
 import Data.Char (toLower)
 import Data.Foldable (toList)
 import Data.List (uncons)
+import Control.Applicative ((<|>))
 
 type LogicIO = LogicT IO
 
@@ -78,8 +79,8 @@ transSignature p (toList -> tvars) ins outs =
     (
       ForallT 
         [ PlainTV tv InferredSpec | tv <- tvars ] 
-        [ ConT (mkName "Eq") `AppT` (VarT tv) | tv <- tvars ] 
-        (ArrowT `AppT` genTupleT ins `AppT` (ConT ''Logic `AppT` (genTupleT outs)))
+        [ ConT ''Eq `AppT` (VarT tv) | tv <- tvars ] 
+        (ArrowT `AppT` tupleType ins `AppT` (ConT ''Logic `AppT` (tupleType outs)))
     )
   where
     genTupleT :: [Type] -> Type 
@@ -90,8 +91,8 @@ transBody p nin nout dclauses = do
   paramPatterns <- mapM genParam [1..nin]
   reverseParams
   params <- getParams
-  let paramse = TupE [Just (VarE p) | p <- params]
-  let inPattern = [TupP paramPatterns]
+  let paramse = tupleExp $ fmap VarE params
+  let inPattern = [tuplePattern paramPatterns]
 
   mapM_ genOutput [1..nout]
   reverseOutputs
@@ -99,15 +100,15 @@ transBody p nin nout dclauses = do
   clauses <- mapM (scoped . transClause paramse nin nout) dclauses
   if null clauses
     then 
-      return $ FunD p [Clause inPattern (NormalB (UnboundVarE (mkName "mempty"))) []]
+      return $ FunD p [Clause inPattern (NormalB (UnboundVarE 'mempty)) []]
     else
       return $ 
         FunD 
           p 
           [ Clause inPattern (
             NormalB $ 
-              (UnboundVarE (mkName "foldl1")) `AppE`
-                (ParensE $ UnboundVarE (mkName "<|>")) `AppE`
+              (UnboundVarE 'foldl1) `AppE`
+                (ParensE $ UnboundVarE '(<|>)) `AppE`
                 (ListE clauses) 
               --
               -- foldr 
@@ -142,7 +143,7 @@ transClause paramse nin nout (terms, body) = do
   stmts <- transClauseBody body
   epilogue <- generateEpilogue outTerms
   return $ ParensE $ DoE Nothing $ toList $ Sq.fromList [
-      BindS (TupP patterns) $ (UnboundVarE (mkName "pure")) `AppE` paramse  
+      BindS (tuplePattern patterns) $ pureE `AppE` paramse  
     ] Sq.>< eqs Sq.>< stmts Sq.>< epilogue
   -- return $ ParensE
   --            (CaseE 
@@ -164,7 +165,7 @@ transClause paramse nin nout (terms, body) = do
     generateEpilogue :: [Abs.Term] -> TransM (Seq Stmt)
     generateEpilogue ts = do 
       outs <- getOutputs
-      let ret = NoBindS (VarE (mkName "pure") `AppE` TupE ((Just . VarE) <$> outs))
+      let ret = NoBindS (pureE `AppE` tupleExp (VarE <$> outs))
       pres <- foldr (Sq.><) Sq.empty <$> zipWithM unifyEq outs ts
       return $ pres Sq.:|> ret
       -- es <- mapM transGroundedTerm ts
@@ -177,7 +178,7 @@ transClauseBody = fmap (foldr (Sq.><) Sq.empty) . mapM transStmt
 transStmt :: Abs.Stmt -> TransM (Seq Stmt)
 transStmt = \case 
   Abs.STrue {} -> return Sq.empty 
-  Abs.SFalse {} -> return $ Sq.singleton (NoBindS (UnboundVarE (mkName "mempty")))
+  Abs.SFalse {} -> return $ Sq.singleton (NoBindS (UnboundVarE 'mempty))
   Abs.SAss _ (Abs.UIdent (haskifyVarName -> v)) t -> unifyEq (mkName v) t
   Abs.SCall _ (Abs.LIdent p) argTerms -> do 
     let pn = mkName p
@@ -206,14 +207,14 @@ transStmt = \case
           }
         -}
         return $ Sq.fromList [
-          BindS (TupP outPats) $ (UnboundVarE pn) `AppE` TupE (Just <$> inExps)
+          BindS (tuplePattern outPats) $ (UnboundVarE pn) `AppE` tupleExp inExps
           ] Sq.>< outAppend 
   Abs.SIs _ (Abs.UIdent (haskifyVarName -> x)) absiexp -> do 
     let xn = mkName x
     mn <- findGroundedName xn 
     exp <- transIExp absiexp
     case mn of 
-      Just n -> Sq.singleton <$> guardEq (VarE n) exp
+      Just n -> return $ Sq.singleton $ guardEq (VarE n) exp
       Nothing -> do
         a <- lNewName x 
         addAlias xn a 
@@ -221,31 +222,31 @@ transStmt = \case
         markGrounded xn
 
         return $ Sq.fromList [
-            BindS (VarP a) (UnboundVarE (mkName "pure") `AppE` exp)
+            BindS (VarP a) (pureE `AppE` exp)
           ]
   Abs.SRel _ a op b -> do
     ae <- transIExp a
     be <- transIExp b 
-    let opn = mkName $ case op of 
-            Abs.LTH {} -> "<"
-            Abs.LE {} -> "<="
-            Abs.GTH {} -> ">"
-            Abs.GE {} -> ">="
-            Abs.EQU {} -> "=="
-            Abs.NE {} -> "/="
+    let opn = case op of 
+            Abs.LTH {} -> '(<)
+            Abs.LE {} -> '(<=)
+            Abs.GTH {} -> '(>)
+            Abs.GE {} -> '(>=)
+            Abs.EQU {} -> '(==)
+            Abs.NE {} -> '(/=)
     return $ Sq.fromList [
-      NoBindS (UnboundVarE (mkName "guard") `AppE` ParensE (UInfixE ae (UnboundVarE opn) be))
+      guardE $ ParensE (UInfixE ae (UnboundVarE opn) be)
       ]
   Abs.SMod _ mod ts (Abs.LIdent proc) argTerms -> do
     (rps, ras) <- unzip <$> mapM prepareOutArg ts
-    let rp = TupP rps
+    let rp = tuplePattern rps
     let ra = foldr (Sq.><) Sq.empty ras 
     case mod of
       Abs.MExt {} -> do 
         when (length rps /= 1) (error $ showString "Ext call expected exactly 1 output but got«" $ show (length rps))
         argExps <- mapM transGroundedTerm argTerms
         return $ Sq.fromList [
-            BindS (rps !! 0) $ (UnboundVarE (mkName "pure")) `AppE` foldl AppE (UnboundVarE (mkName proc)) argExps
+            BindS (rps !! 0) $ pureE `AppE` foldl AppE (UnboundVarE (mkName proc)) argExps
           ] Sq.>< ra
       -- Abs.MCollect {} -> do 
       --   mprocdec <- getDecl proc 
@@ -278,7 +279,7 @@ transStmt = \case
         case mgn of 
           (Just n) -> do
             temp <- lNewName v 
-            g <- guardEq (VarE temp) (VarE n)
+            let g = guardEq (VarE temp) (VarE n)
             return (VarP temp, Sq.singleton g)
           Nothing -> do
             a <- lNewName v 
@@ -292,11 +293,11 @@ transStmt = \case
       (Abs.TTup _ ts) -> do
         (pats, appends) <- unzip <$> mapM prepareOutArg ts 
         let append = foldr (Sq.><) Sq.empty appends 
-        return (TupP pats, append)
+        return (tuplePattern pats, append)
       (Abs.TCons _ a b) -> do
         (ap, aa) <- prepareOutArg a 
         (bp, ba) <- prepareOutArg b
-        return (UInfixP ap (mkName ":") bp, aa Sq.>< ba)
+        return (UInfixP ap '(:) bp, aa Sq.>< ba)
       (Abs.TIgnore {}) -> return (WildP, Sq.empty)
       (Abs.TConstr _ (Abs.UIdent con) ts) -> do
         let conn = mkName con 
@@ -313,19 +314,19 @@ transIExp = \case
       Nothing -> error $ showString "Free variable in expression: " $ show x 
       Just n -> return (VarE n)
   Abs.IELit _ i -> return (LitE (IntegerL i))
-  Abs.IENeg _ t -> (UnboundVarE (mkName "-") `AppE`) <$> transIExp t
+  Abs.IENeg _ t -> (UnboundVarE '(-) `AppE`) <$> transIExp t
   Abs.IEMul _ a op b -> do
-    let opn = mkName $ case op of 
-                Abs.Times {} -> "*"
-                Abs.Div {} -> "div"
-                Abs.Mod {} -> "mod"
+    let opn = case op of 
+                Abs.Times {} -> '(*)
+                Abs.Div {} -> 'div
+                Abs.Mod {} -> 'mod
     ae <- transIExp a
     be <- transIExp b 
     return $ UInfixE ae (UnboundVarE opn) be
   Abs.IEAdd _ a op b -> do
-    let opn = mkName $ case op of 
-                Abs.Plus {} -> "+"
-                Abs.Minus {} -> "-"
+    let opn = case op of 
+                Abs.Plus {} -> '(+)
+                Abs.Minus {} -> '(-)
     ae <- transIExp a
     be <- transIExp b 
     return $ UInfixE ae (UnboundVarE opn) be
@@ -346,18 +347,18 @@ transGroundedTerm = \case
   Abs.TCons _ a b -> do 
     ae <- transGroundedTerm a
     be <- transGroundedTerm b 
-    return $ ParensE (UInfixE ae (ConE (mkName ":")) be)
+    return $ ParensE (UInfixE ae (ConE '(:)) be)
   
 unifyEq :: Name -> Abs.Term -> TransM (Seq Stmt)
 unifyEq n t = do
   gn <- findGroundedName n
   case gn of 
-    Just n' -> Sq.singleton . NoBindS . UInfixE (VarE n') (UnboundVarE (mkName "==")) <$> transGroundedTerm t
+    Just n' -> Sq.singleton . NoBindS . UInfixE (VarE n') (UnboundVarE '(==)) <$> transGroundedTerm t
     Nothing -> do
       addAlias n n
       markGrounded n 
       gt <- transGroundedTerm t
-      return $ Sq.singleton $ BindS (VarP n) $ (AppE (UnboundVarE (mkName "pure"))) $ gt
+      return $ Sq.singleton $ BindS (VarP n) $ AppE pureE $ gt
 
 patternOfAbsTerm :: Abs.Term -> TransM Pat
 patternOfAbsTerm = 
@@ -376,7 +377,7 @@ patternOfAbsTerm =
     Abs.TCons _ x r -> do 
       xp <- patternOfAbsTerm x
       rp <- patternOfAbsTerm r
-      return $ ParensP $ ConP (mkName ":") [] [xp, rp] 
+      return $ ParensP $ ConP '(:) [] [xp, rp] 
     Abs.TConstr _ (Abs.UIdent con) ts -> do
       let conn = mkName con 
       tps <- mapM patternOfAbsTerm ts 
@@ -446,12 +447,10 @@ assertEqualAliases n = do
       forM_ (x:xs) markGrounded 
       modify (\s -> s{tsAliases=M.delete n (tsAliases s), tsGroundedAliases=M.insertWith S.union n aliases (tsGroundedAliases s)})
       pure  $ Sq.singleton 
-            $ NoBindS 
-            $ AppE 
-              (VarE (mkName "guard"))
+            $ guardE
               $ AppE 
-                (VarE (mkName "and")) 
-                (ListE [ UInfixE (VarE x) (UnboundVarE (mkName "==")) (VarE x') 
+                (UnboundVarE 'and) 
+                (ListE [ UInfixE (VarE x) (UnboundVarE '(==)) (VarE x') 
                         | x' <- xs 
                         ]
                 )
@@ -471,5 +470,20 @@ partitionInOut nin nout xs =
 getDecl :: String -> TransM (Maybe Decl)
 getDecl p = gets (M.lookup p . tsProg)
 
-guardEq :: Exp -> Exp -> TransM Stmt
-guardEq a b = return $ NoBindS $ VarE (mkName "guard") `AppE` (ParensE $ UInfixE a (UnboundVarE (mkName "==")) b)
+guardE :: Exp -> Stmt
+guardE e = NoBindS $ VarE 'guard `AppE` e
+
+guardEq :: Exp -> Exp -> Stmt
+guardEq a b = guardE $ ParensE $ UInfixE a (UnboundVarE '(==)) b
+
+tuplePattern :: [Pat] -> Pat 
+tuplePattern [p] = p
+tuplePattern ps = TupP ps
+
+tupleExp :: [Exp] -> Exp 
+tupleExp [e] = e
+tupleExp es = TupE $ fmap Just es
+
+pureE :: Exp
+pureE = UnboundVarE 'pure
+

@@ -7,17 +7,8 @@
 module Main where
 
 import Prelude hiding (elem, last, repeat)
-import Control.Monad    
 import Control.Monad.Logic
-import Data.List hiding (elem, last, repeat)
-import Control.Applicative 
-import Data.Tuple
 
-import Abs   ( Program )
-import Lex   ( Token, mkPosToken )
-import Par   ( pProgram, myLexer )
-import Print ( Print, printTree )
-import Skel  ()
 import QQ (hp)
 
 main :: IO ()
@@ -46,6 +37,9 @@ sumid :: Num a => [a] -> ([a], a)
 sumid xs = (xs, sum xs)
 
 [hp|
+  .decl add(Int,Int|Int).
+|]
+[hp|
   .decl treepaths(Tree(a)|[a]).
   treepaths(Leaf(X), [X]).
   treepaths(Node(L, X, _), (X:T)) :-
@@ -58,44 +52,44 @@ sumid xs = (xs, sum xs)
 |]
 
 {- Prosty graf -}
--- [hp|
---   .decl node(|Int).
---   node(1).
---   node(2).
---   node(3).
---   node(4).
---   node(5).
---   node(6).
---   node(7).
---
--- %   .decl nodes(|[Int]).
--- %   nodes(Xs) :- collect (Xs) : node(X).
---
---   .decl edge(|Int, Int).
---   edge(1, 2).
---   edge(2, 3).
---   edge(3, 4).
---   edge(4, 5).
---   edge(4, 6).
---   edge(1, 4).
---
---   .decl reach(Int|Int).
---   reach(X, X) :- node(X).
---   reach(X, Y) :- 
---     edge(X, Z),
---     reach(Z, Y).
---
---   .decl trails(Int,Int|[Int]).
---   trails(X, X, []).
---   trails(X, Y, (H:T)) :-
---     edge(X, H),
---     trails(H, Y, T).
---
---   .decl trailSum(Int,Int|([Int], Int)).
---   trailSum(X, Y, S) :-
---     trails(X, Y, Trail),
---     ext (S) : sumid(Trail).
--- |]
+[hp|
+  .decl node(|Int).
+  node(1).
+  node(2).
+  node(3).
+  node(4).
+  node(5).
+  node(6).
+  node(7).
+
+%   .decl nodes(|[Int]).
+%   nodes(Xs) :- collect (Xs) : node(X).
+
+  .decl edge(|Int, Int).
+  edge(1, 2).
+  edge(2, 3).
+  edge(3, 4).
+  edge(4, 5).
+  edge(4, 6).
+  edge(1, 4).
+
+  .decl reach(Int|Int).
+  reach(X, X) :- node(X).
+  reach(X, Y) :- 
+    edge(X, Z),
+    reach(Z, Y).
+
+  .decl trails(Int,Int|[Int]).
+  trails(X, X, []).
+  trails(X, Y, (H:T)) :-
+    edge(X, H),
+    trails(H, Y, T).
+
+  .decl trailSum(Int,Int|([Int], Int)).
+  trailSum(X, Y, S) :-
+    trails(X, Y, Trail),
+    ext (S) : sumid(Trail).
+|]
 {-  -}
 
 
