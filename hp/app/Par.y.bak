@@ -38,21 +38,19 @@ import Lex
   ':-'      { PT _ (TS _ 13)    }
   '<'       { PT _ (TS _ 14)    }
   '<='      { PT _ (TS _ 15)    }
-  '<['      { PT _ (TS _ 16)    }
-  '='       { PT _ (TS _ 17)    }
-  '=='      { PT _ (TS _ 18)    }
-  '>'       { PT _ (TS _ 19)    }
-  '>='      { PT _ (TS _ 20)    }
-  'False'   { PT _ (TS _ 21)    }
-  'True'    { PT _ (TS _ 22)    }
-  '['       { PT _ (TS _ 23)    }
-  ']'       { PT _ (TS _ 24)    }
-  ']-'      { PT _ (TS _ 25)    }
-  '_'       { PT _ (TS _ 26)    }
-  'collect' { PT _ (TS _ 27)    }
-  'ext'     { PT _ (TS _ 28)    }
-  'is'      { PT _ (TS _ 29)    }
-  '|'       { PT _ (TS _ 30)    }
+  '='       { PT _ (TS _ 16)    }
+  '=='      { PT _ (TS _ 17)    }
+  '>'       { PT _ (TS _ 18)    }
+  '>='      { PT _ (TS _ 19)    }
+  'False'   { PT _ (TS _ 20)    }
+  'True'    { PT _ (TS _ 21)    }
+  '['       { PT _ (TS _ 22)    }
+  ']'       { PT _ (TS _ 23)    }
+  '_'       { PT _ (TS _ 24)    }
+  'collect' { PT _ (TS _ 25)    }
+  'ext'     { PT _ (TS _ 26)    }
+  'is'      { PT _ (TS _ 27)    }
+  '|'       { PT _ (TS _ 28)    }
   L_integ   { PT _ (TI _)       }
   L_quoted  { PT _ (TL _)       }
   L_UIdent  { PT _ (T_UIdent _) }
@@ -91,6 +89,7 @@ TypeArg
   : UIdent { (fst $1, Abs.TALit (fst $1) (snd $1)) }
   | LIdent { (fst $1, Abs.TAGen (fst $1) (snd $1)) }
   | '[' TypeArg ']' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TAList (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
+  | '(' ListTypeArg ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TATup (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
   | TypeArg '(' ListTypeArg ')' { (fst $1, Abs.TAApp (fst $1) (snd $1) (snd $3)) }
 
 ListTypeArg :: { (Abs.BNFC'Position, [Abs.TypeArg]) }
@@ -111,10 +110,10 @@ Stmt
   | UIdent '=' Term { (fst $1, Abs.SAss (fst $1) (snd $1) (snd $3)) }
   | UIdent 'is' IExp { (fst $1, Abs.SIs (fst $1) (snd $1) (snd $3)) }
   | IExp RelOp IExp { (fst $1, Abs.SRel (fst $1) (snd $1) (snd $2) (snd $3)) }
-  | Term '<[' Mod ']-' LIdent '(' ListTerm ')' { (fst $1, Abs.SMod (fst $1) (snd $1) (snd $3) (snd $5) (snd $7)) }
+  | Modifier '(' ListTerm ')' ':' LIdent '(' ListTerm ')' { (fst $1, Abs.SMod (fst $1) (snd $1) (snd $3) (snd $6) (snd $8)) }
 
-Mod :: { (Abs.BNFC'Position, Abs.Mod) }
-Mod
+Modifier :: { (Abs.BNFC'Position, Abs.Modifier) }
+Modifier
   : 'ext' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MExt (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
   | 'collect' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.MCollect (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
 
@@ -167,6 +166,7 @@ Term
   | '_' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TIgnore (uncurry Abs.BNFC'Position (tokenLineCol $1))) }
   | '[' ListTerm ']' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TList (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
   | '(' Term ':' Term ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TCons (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4)) }
+  | '(' ListTerm ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TTup (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
 
 ListTerm :: { (Abs.BNFC'Position, [Abs.Term]) }
 ListTerm

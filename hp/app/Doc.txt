@@ -39,11 +39,10 @@ The reserved words used in  are the following:
 The symbols used in  are the following:
   | . | .decl | ( | |
   | ) | [ | ] | ,
-  | :- | = | <[ | ]-
-  | - | + | * | /
-  | % | < | <= | >
-  | >= | == | != | _
-  | : |  |  |
+  | :- | = | : | -
+  | + | * | / | %
+  | < | <= | > | >=
+  | == | != | _ |
 
 ===Comments===
 Single-line comments begin with %.There are no multiple-line comments in the grammar.
@@ -63,6 +62,7 @@ All other symbols are terminals.
   | //TypeArg// | -> | //UIdent//
   |  |  **|**  | //LIdent//
   |  |  **|**  | ``[`` //TypeArg// ``]``
+  |  |  **|**  | ``(`` //[TypeArg]// ``)``
   |  |  **|**  | //TypeArg// ``(`` //[TypeArg]// ``)``
   | //[TypeArg]// | -> | **eps**
   |  |  **|**  | //TypeArg//
@@ -74,7 +74,7 @@ All other symbols are terminals.
   |  |  **|**  | //UIdent// ``=`` //Term//
   |  |  **|**  | //UIdent// ``is`` //IExp//
   |  |  **|**  | //IExp// //RelOp// //IExp//
-  |  |  **|**  | //Term// ``<[`` //Modifier// ``]-`` //LIdent// ``(`` //[Term]// ``)``
+  |  |  **|**  | //Modifier// ``(`` //[Term]// ``)`` ``:`` //LIdent// ``(`` //[Term]// ``)``
   | //Modifier// | -> | ``ext``
   |  |  **|**  | ``collect``
   | //IExp3// | -> | //UIdent//
@@ -103,6 +103,8 @@ All other symbols are terminals.
   |  |  **|**  | ``_``
   |  |  **|**  | ``[`` //[Term]// ``]``
   |  |  **|**  | ``(`` //Term// ``:`` //Term// ``)``
+  |  |  **|**  | ``(`` //[Term]// ``)``
+  |  |  **|**  | //UIdent// ``(`` //[Term]// ``)``
   | //[Term]// | -> | **eps**
   |  |  **|**  | //Term//
   |  |  **|**  | //Term// ``,`` //[Term]//

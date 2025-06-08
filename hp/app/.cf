@@ -7,6 +7,7 @@ TDef. Def ::= ".decl" LIdent "(" [TypeArg] "|" [TypeArg] ")" ;
 TALit. TypeArg ::= UIdent ;
 TAGen. TypeArg ::= LIdent ;
 TAList. TypeArg ::= "[" TypeArg "]" ;
+TATup. TypeArg ::= "(" [TypeArg] ")" ;
 TAApp. TypeArg ::= TypeArg "(" [TypeArg] ")" ;
 separator TypeArg "," ;
 
@@ -21,10 +22,10 @@ SCall. Stmt ::= LIdent "(" [Term] ")" ;
 SAss. Stmt ::= UIdent "=" Term ;
 SIs. Stmt ::= UIdent "is" IExp ;
 SRel. Stmt ::= IExp RelOp IExp ;
-SMod. Stmt ::= Term "<[" Modifier "]-" LIdent "(" [Term] ")" ;
+SMod. Stmt ::= Modifier "(" [Term] ")" ":" LIdent "(" [Term] ")" ;
 
 MExt. Modifier ::= "ext" ;
-MCollect. Modifier ::= "collect" ; 
+MCollect. Modifier ::= "collect"; 
 
 IEVar. IExp3 ::= UIdent ;
 IELit. IExp3 ::= Integer ;
@@ -52,6 +53,8 @@ TVar. Term ::= UIdent ;
 TIgnore. Term ::= "_" ;
 TList. Term ::= "[" [Term] "]";
 TCons. Term ::= "(" Term ":" Term ")" ;
+TTup. Term ::= "(" [Term] ")" ;
+TConstr. Term ::= UIdent "(" [Term] ")" ;
 
 separator Term "," ;
 separator Stmt "," ;

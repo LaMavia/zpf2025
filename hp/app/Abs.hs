@@ -34,6 +34,7 @@ data TypeArg' a
     = TALit a UIdent
     | TAGen a LIdent
     | TAList a (TypeArg' a)
+    | TATup a [TypeArg' a]
     | TAApp a (TypeArg' a) [TypeArg' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
@@ -49,7 +50,7 @@ data Stmt' a
     | SAss a UIdent (Term' a)
     | SIs a UIdent (IExp' a)
     | SRel a (IExp' a) (RelOp' a) (IExp' a)
-    | SMod a (Term' a) (Modifier' a) LIdent [Term' a]
+    | SMod a (Modifier' a) [Term' a] LIdent [Term' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type Modifier = Modifier' BNFC'Position
@@ -85,6 +86,8 @@ data Term' a
     | TIgnore a
     | TList a [Term' a]
     | TCons a (Term' a) (Term' a)
+    | TTup a [Term' a]
+    | TConstr a UIdent [Term' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 newtype UIdent = UIdent String
@@ -123,6 +126,7 @@ instance HasPosition TypeArg where
     TALit p _ -> p
     TAGen p _ -> p
     TAList p _ -> p
+    TATup p _ -> p
     TAApp p _ _ -> p
 
 instance HasPosition DeclHeader where
@@ -180,4 +184,6 @@ instance HasPosition Term where
     TIgnore p -> p
     TList p _ -> p
     TCons p _ _ -> p
+    TTup p _ -> p
+    TConstr p _ _ -> p
 

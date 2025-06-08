@@ -38,6 +38,7 @@ transTypeArg x = case x of
   Abs.TALit _ uident -> failure x
   Abs.TAGen _ lident -> failure x
   Abs.TAList _ typearg -> failure x
+  Abs.TATup _ typeargs -> failure x
   Abs.TAApp _ typearg typeargs -> failure x
 
 transDeclHeader :: Show a => Abs.DeclHeader' a -> Result
@@ -52,7 +53,7 @@ transStmt x = case x of
   Abs.SAss _ uident term -> failure x
   Abs.SIs _ uident iexp -> failure x
   Abs.SRel _ iexp1 relop iexp2 -> failure x
-  Abs.SMod _ term modifier lident terms -> failure x
+  Abs.SMod _ modifier terms1 lident terms2 -> failure x
 
 transModifier :: Show a => Abs.Modifier' a -> Result
 transModifier x = case x of
@@ -95,3 +96,5 @@ transTerm x = case x of
   Abs.TIgnore _ -> failure x
   Abs.TList _ terms -> failure x
   Abs.TCons _ term1 term2 -> failure x
+  Abs.TTup _ terms -> failure x
+  Abs.TConstr _ uident terms -> failure x

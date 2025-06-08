@@ -40,45 +40,59 @@ main = undefined
 -- |]
 {- gpQuery (MkSolo "Stasiu") -}
 
+data Tree a = Leaf a | Node (Tree a) a (Tree a)
 
+sumid :: Num a => [a] -> ([a], a)
+sumid xs = (xs, sum xs)
 
+[hp|
+  .decl treepaths(Tree(a)|[a]).
+  treepaths(Leaf(X), [X]).
+  treepaths(Node(L, X, _), (X:T)) :-
+    treepaths(L, T).
+  treepaths(Node(_, X, R), (X:T)) :-
+    treepaths(R, T).
+|]
 
 {- Prosty graf -}
-[hp|
-  .decl node(|Int).
-  node(1).
-  node(2).
-  node(3).
-  node(4).
-  node(5).
-  node(6).
-  node(7).
-
-  .decl edge(|Int, Int).
-  edge(1, 2).
-  edge(2, 3).
-  edge(3, 4).
-  edge(4, 5).
-  edge(4, 6).
-  edge(1, 4).
-
-  .decl reach(Int|Int).
-  reach(X, X) :- node(X).
-  reach(X, Y) :- 
-    edge(X, Z),
-    reach(Z, Y).
-
-  .decl trails(Int,Int|[Int]).
-  trails(X, X, []).
-  trails(X, Y, (H:T)) :-
-    edge(X, H),
-    trails(H, Y, T).
-
-  .decl trailSum(Int,Int|Int).
-  trailSum(X, Y, S) :-
-    trails(X, Y, Trail),
-    S <[ext]- sum(Trail).
-|]
+-- [hp|
+--   .decl node(|Int).
+--   node(1).
+--   node(2).
+--   node(3).
+--   node(4).
+--   node(5).
+--   node(6).
+--   node(7).
+--
+-- %   .decl nodes(|[Int]).
+-- %   nodes(Xs) :- collect (Xs) : node(X).
+--
+--   .decl edge(|Int, Int).
+--   edge(1, 2).
+--   edge(2, 3).
+--   edge(3, 4).
+--   edge(4, 5).
+--   edge(4, 6).
+--   edge(1, 4).
+--
+--   .decl reach(Int|Int).
+--   reach(X, X) :- node(X).
+--   reach(X, Y) :- 
+--     edge(X, Z),
+--     reach(Z, Y).
+--
+--   .decl trails(Int,Int|[Int]).
+--   trails(X, X, []).
+--   trails(X, Y, (H:T)) :-
+--     edge(X, H),
+--     trails(H, Y, T).
+--
+--   .decl trailSum(Int,Int|([Int], Int)).
+--   trailSum(X, Y, S) :-
+--     trails(X, Y, Trail),
+--     ext (S) : sumid(Trail).
+-- |]
 {-  -}
 
 
@@ -137,3 +151,8 @@ main = undefined
 --   beforeOne((_:T), X) :-
 --     beforeOne(T, X).
 -- |]
+
+[hp|
+  .decl alleq(a,a,a,a|).
+  alleq(X,X,X,X).
+|]

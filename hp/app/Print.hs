@@ -161,6 +161,7 @@ instance Print (Abs.TypeArg' a) where
     Abs.TALit _ uident -> prPrec i 0 (concatD [prt 0 uident])
     Abs.TAGen _ lident -> prPrec i 0 (concatD [prt 0 lident])
     Abs.TAList _ typearg -> prPrec i 0 (concatD [doc (showString "["), prt 0 typearg, doc (showString "]")])
+    Abs.TATup _ typeargs -> prPrec i 0 (concatD [doc (showString "("), prt 0 typeargs, doc (showString ")")])
     Abs.TAApp _ typearg typeargs -> prPrec i 0 (concatD [prt 0 typearg, doc (showString "("), prt 0 typeargs, doc (showString ")")])
 
 instance Print [Abs.TypeArg' a] where
@@ -180,7 +181,7 @@ instance Print (Abs.Stmt' a) where
     Abs.SAss _ uident term -> prPrec i 0 (concatD [prt 0 uident, doc (showString "="), prt 0 term])
     Abs.SIs _ uident iexp -> prPrec i 0 (concatD [prt 0 uident, doc (showString "is"), prt 0 iexp])
     Abs.SRel _ iexp1 relop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 relop, prt 0 iexp2])
-    Abs.SMod _ term modifier lident terms -> prPrec i 0 (concatD [prt 0 term, doc (showString "<["), prt 0 modifier, doc (showString "]-"), prt 0 lident, doc (showString "("), prt 0 terms, doc (showString ")")])
+    Abs.SMod _ modifier terms1 lident terms2 -> prPrec i 0 (concatD [prt 0 modifier, doc (showString "("), prt 0 terms1, doc (showString ")"), doc (showString ":"), prt 0 lident, doc (showString "("), prt 0 terms2, doc (showString ")")])
 
 instance Print (Abs.Modifier' a) where
   prt i = \case
@@ -223,6 +224,8 @@ instance Print (Abs.Term' a) where
     Abs.TIgnore _ -> prPrec i 0 (concatD [doc (showString "_")])
     Abs.TList _ terms -> prPrec i 0 (concatD [doc (showString "["), prt 0 terms, doc (showString "]")])
     Abs.TCons _ term1 term2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 term1, doc (showString ":"), prt 0 term2, doc (showString ")")])
+    Abs.TTup _ terms -> prPrec i 0 (concatD [doc (showString "("), prt 0 terms, doc (showString ")")])
+    Abs.TConstr _ uident terms -> prPrec i 0 (concatD [prt 0 uident, doc (showString "("), prt 0 terms, doc (showString ")")])
 
 instance Print [Abs.Term' a] where
   prt _ [] = concatD []
