@@ -129,9 +129,10 @@ transStmt = \case
   Abs.SAss _ (Abs.UIdent (haskifyVarName -> v)) t -> unifyEq (mkName v) t
   Abs.SCall _ (Abs.LIdent p) argTerms -> do 
     (outPats, pn, inExps, outAppend) <- genCallStmt p argTerms
+    let rhs = (UnboundVarE pn) `AppE` tupleExp inExps
     return $ Sq.fromList [
-      BindS (tuplePattern outPats) $ (UnboundVarE pn) `AppE` tupleExp inExps
-      ] Sq.>< outAppend 
+      if null outPats then NoBindS rhs else BindS (tuplePattern outPats) rhs
+      ] Sq.>< outAppend
   Abs.SIs _ (Abs.UIdent (haskifyVarName -> x)) absiexp -> do 
     let xn = mkName x
     mn <- findGroundedName xn 
