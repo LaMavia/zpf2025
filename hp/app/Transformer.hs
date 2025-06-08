@@ -88,11 +88,14 @@ transSignature p (toList -> tvars) ins outs =
 
 transBody :: Name -> Int -> Int -> [DClause] -> TransM Dec 
 transBody p nin nout dclauses = do 
-  paramPatterns <- mapM genParam [1..nin]
-  reverseParams
-  params <- getParams
-  let paramse = tupleExp $ fmap VarE params
-  let inPattern = [tuplePattern paramPatterns]
+  -- paramPatterns <- mapM genParam [1..nin]
+  -- reverseParams
+  -- params <- getParams
+  -- let paramse = tupleExp $ fmap VarE params
+  -- let inPattern = [tuplePattern paramPatterns]
+  paramn <- lNewName "input"
+  let paramse = VarE paramn
+  let inPattern = [VarP paramn]
 
   mapM_ genOutput [1..nout]
   reverseOutputs
