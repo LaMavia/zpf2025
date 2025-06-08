@@ -18,10 +18,9 @@ import Data.Maybe (fromMaybe)
 import Control.Monad (forM, zipWithM, forM_, when, guard, unless)
 import Data.Char (toLower)
 import Data.Foldable (toList)
-import Data.List (uncons)
+import Data.List (uncons, nub)
 import Control.Applicative ((<|>))
 import Data.Maybe (fromJust)
-import Debug.Trace (traceShow)
 
 type LogicIO = LogicT IO
 
@@ -66,7 +65,7 @@ transDecl (Decl {dIdent=p, dIn=inArgs, dTypeVars=tvars, dOut=outArgs, dClauses=c
 
 transSignature :: Name -> Set Name -> [Type] -> [Type] -> [Type] -> TransM Dec
 transSignature p (toList -> tvars) constrs ins outs = 
-  traceShow constrs $ return $ SigD 
+  return $ SigD 
     p 
     (
       ForallT 
@@ -74,17 +73,9 @@ transSignature p (toList -> tvars) constrs ins outs =
         ([ ConT ''Eq `AppT` (VarT tv) | tv <- tvars ] <> constrs)
         (ArrowT `AppT` tupleType ins `AppT` (ConT ''Logic `AppT` (tupleType outs)))
     )
-  where
-    genTupleT :: [Type] -> Type 
-    genTupleT xs = foldl AppT (TupleT (length xs)) xs
 
 transBody :: Name -> Int -> Int -> [DClause] -> TransM Dec 
 transBody p nin nout dclauses = do 
-  -- paramPatterns <- mapM genParam [1..nin]
-  -- reverseParams
-  -- params <- getParams
-  -- let paramse = tupleExp $ fmap VarE params
-  -- let inPattern = [tuplePattern paramPatterns]
   paramn <- lNewName "input"
   let paramse = VarE paramn
   let inPattern = [VarP paramn]
@@ -105,11 +96,6 @@ transBody p nin nout dclauses = do
               (UnboundVarE 'foldl1) `AppE`
                 (ParensE $ UnboundVarE '(<|>)) `AppE`
                 (ListE clauses) 
-              --
-              -- foldr 
-              --   (\x u -> UInfixE x (UnboundVarE (mkName "<|>")) u) 
-              --   (VarE (mkName "mempty"))
-              --   clauses
           ) [] ]
   where 
     genParam :: Int -> TransM Pat

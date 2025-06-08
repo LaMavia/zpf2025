@@ -154,7 +154,34 @@ sumid xs = (xs, sum xs)
 --     repeat(N1, X, L).
 -- |]
 
+
 -- [hp|
---   .decl isGeq[Ord(a)](a, a|).
---   isGeq(X, Y) :- X >= Y.
+-- .decl maxim[Ord(a)]([a] | a).
+-- maxim((H:T), M) :-
+--   maximAux(T, H, M).
+--
+-- .decl maximAux[Ord(a)]([a], a | a).
+-- maximAux([], M, M).
+-- maximAux((H:T), CM, M) :-
+--   H < CM,
+--   maximAux(T, CM, M).
+-- maximAux((H:T), CM, M) :-
+--   H >= CM,
+--   maximAux(T, H, M).
+--
+-- .decl x[Ord(a), Eq(a)](a | a).
+-- x(A, A).
 -- |]
+
+[hp|
+  .decl cumsum[Num(a)]([a] | [a]).
+  cumsum([], []).
+  cumsum((H:T), S) :- 
+    cumsumAux(T, H, S).
+
+  .decl cumsumAux[Num(a)]([a], a | [a]).
+  cumsumAux([], S, [S]).
+  cumsumAux((H:T), S, (S:ST)) :-
+    S1 is S + H,
+    cumsumAux(T, S1, ST).
+|]
