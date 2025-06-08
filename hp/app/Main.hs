@@ -8,6 +8,7 @@ module Main where
 
 import Prelude hiding (elem, last, repeat)
 import Control.Monad.Logic
+import Data.List (nub, sort)
 
 import QQ (hp)
 
@@ -35,73 +36,75 @@ data Tree a = Leaf a | Node (Tree a) a (Tree a) deriving (Eq)
 
 sumid :: Num a => [a] -> ([a], a)
 sumid xs = (xs, sum xs)
---
--- [hp|
---   .decl add(Int,Int|Int).
--- |]
--- [hp|
---   .decl treepaths(Tree(a)|[a]).
---   treepaths(Leaf(X), [X]).
---   treepaths(Node(L, X, _), (X:T)) :-
---     treepaths(L, T).
---   treepaths(Node(_, X, R), (X:T)) :-
---     treepaths(R, T).
---
---   .decl treeeq(Tree(a), Tree(a)|).
---   treeeq(Leaf(X), Leaf(X)).
---   treeeq(Node(L1, X, R1), Node(L2, X, R2)) :-
---     treeeq(L1, L2),
---     treeeq(R1, R2).
---
---   .decl issymm(Tree(a)|).
---   issymm(Leaf(_)).
---   issymm(Node(X, _, X)).
--- |]
 
 {- Prosty graf -}
--- [hp|
---   .decl node(|Int).
---   node(1).
---   node(2).
---   node(3).
---   node(4).
---   node(5).
---   node(6).
---   node(7).
---
---   .decl nodes(|[Int]).
---   nodes(X) :- collect (X) : node(X).
---
---   .decl es(|[Int],[Int]).
---   es(X, Y) :-
---     collect (X, Y): edge(X, Y).
---
---   .decl edge(|Int, Int).
---   edge(1, 2).
---   edge(2, 3).
---   edge(3, 4).
---   edge(4, 5).
---   edge(4, 6).
---   edge(1, 4).
--- % 
--- %   .decl reach(Int|Int).
--- %   reach(X, X) :- node(X).
--- %   reach(X, Y) :- 
--- %     edge(X, Z),
--- %     reach(Z, Y).
--- % 
--- %   .decl trails(Int,Int|[Int]).
--- %   trails(X, X, []).
--- %   trails(X, Y, (H:T)) :-
--- %     edge(X, H),
--- %     trails(H, Y, T).
--- % 
--- %   .decl trailSum(Int,Int|([Int], Int)).
--- %   trailSum(X, Y, S) :-
--- %     trails(X, Y, Trail),
--- %     ext (S) : sumid(Trail).
--- |]
+[hp|
+  .decl node(|Int).
+  node(1).
+  node(2).
+  node(3).
+  node(4).
+  node(5).
+  node(6).
+  node(7).
+
+  .decl edge(|Int, Int).
+  edge(1, 2).
+  edge(2, 3).
+  edge(3, 4).
+  edge(1, 3).
+  edge(1, 4).
+  edge(5, 6).
+  edge(6, 7).
+  edge(5, 7).
+
+  .decl uedge(|Int, Int).
+  uedge(X, Y) :- edge(X, Y).
+  uedge(X, Y) :- edge(Y, X).
+
+  .decl trails(Int | [Int]).
+  trails(X, T) :-
+    trailsAux(X, [], T).
+
+  .decl el([a], a|).
+  el((X:_), X).
+  el((_:L), X) :- el(L, X).
+
+  .decl notEl([a], a|).
+  notEl([], _).
+  notEl((H:T), X) :-
+    H != X,
+    notEl(T, X).
+
+  .decl trailsAux(Int, [Int] | [Int]).
+  trailsAux(X, V, VR) :-
+    once () : el(V, X),
+    ext (VR) : reverse(V).
+  trailsAux(X, V, T) :-
+    once () : notEl(V, X),
+    uedge(X, Y),
+    trailsAux(Y, (X:V), T).
+
+  .decl notNull([a]|).
+  notNull((_:_)).
+
+  .decl label(|Int, Int).
+  label(X, L) :-
+    node(X),
+    collect (Ts) : trails(X, Ts),
+    notNull(Ts),
+    ext (T) : maximum(Ts),
+    notNull(T),
+    ext (L) : maximum(T).
+
+  .decl wcc(|Int, [Int]).
+  wcc(L, Xs) :-
+    node(L),
+    collect (Xs) : label(Xs, L),
+    notNull(Xs).
+|]
 {-  -}
+
 
 
 
@@ -142,34 +145,16 @@ sumid xs = (xs, sum xs)
 --     ln(T, Len0),
 --     Len is Len0 + 1.
 --
+--
 --   .decl repeat(Int, a | [a]).
 --   repeat(0, _, []).
 --   repeat(N, X, (X:L)) :-
 --     N > 0,
 --     N1 is N - 1,
 --     repeat(N1, X, L).
---
---   .decl q(a|a,a).
---   q(A, B, C) :- repeat(4, A, (A:(B:(C:_)))).
 -- |]
 
 -- [hp|
---   .decl beforeOne([Int]|Int).
---   beforeOne((X:(1:_)), X).
---   beforeOne((_:T), X) :-
---     beforeOne(T, X).
+--   .decl isGeq[Ord(a)](a, a|).
+--   isGeq(X, Y) :- X >= Y.
 -- |]
-
--- [hp|
---   .decl alleq(a,a,a,a|).
---   alleq(X,X,X,X).
--- |]
-
-[hp|
-  .decl t(|Int,Int,Int).
-  t(1,2,3).
-  t(4,5,6).
-
-  .decl ts(|[Int], [Int], [Int]).
-  ts(X,Y,Z) :- collect (X, Y, Z) : t(X,Y,Z).
-|]

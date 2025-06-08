@@ -187,6 +187,7 @@ instance Print (Abs.Modifier' a) where
   prt i = \case
     Abs.MExt _ -> prPrec i 0 (concatD [doc (showString "ext")])
     Abs.MCollect _ -> prPrec i 0 (concatD [doc (showString "collect")])
+    Abs.MOnce _ -> prPrec i 0 (concatD [doc (showString "once")])
 
 instance Print (Abs.IExp' a) where
   prt i = \case

@@ -82,6 +82,7 @@ ListDef
 Def :: { (Abs.BNFC'Position, Abs.Def) }
 Def
   : '.decl' LIdent '(' ListTypeArg '|' ListTypeArg ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TDef (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4) (snd $6)) }
+  | '.decl' LIdent '[' ListConstr ']' '(' ListTypeArg '|' ListTypeArg ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.TGDef (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4) (snd $7) (snd $9)) }
   | DeclHeader { (fst $1, Abs.DFact (fst $1) (snd $1)) }
   | DeclHeader ':-' ListStmt { (fst $1, Abs.DRule (fst $1) (snd $1) (snd $3)) }
 
@@ -98,6 +99,25 @@ ListTypeArg
   : {- empty -} { (Abs.BNFC'NoPosition, []) }
   | TypeArg { (fst $1, (:[]) (snd $1)) }
   | TypeArg ',' ListTypeArg { (fst $1, (:) (snd $1) (snd $3)) }
+
+Constr :: { (Abs.BNFC'Position, Abs.Constr) }
+Constr
+  : UIdent '(' ListConstrVar ')' { (fst $1, Abs.Constr (fst $1) (snd $1) (snd $3)) }
+
+ConstrVar :: { (Abs.BNFC'Position, Abs.ConstrVar) }
+ConstrVar : LIdent { (fst $1, Abs.ConstrVar (fst $1) (snd $1)) }
+
+ListConstr :: { (Abs.BNFC'Position, [Abs.Constr]) }
+ListConstr
+  : {- empty -} { (Abs.BNFC'NoPosition, []) }
+  | Constr { (fst $1, (:[]) (snd $1)) }
+  | Constr ',' ListConstr { (fst $1, (:) (snd $1) (snd $3)) }
+
+ListConstrVar :: { (Abs.BNFC'Position, [Abs.ConstrVar]) }
+ListConstrVar
+  : {- empty -} { (Abs.BNFC'NoPosition, []) }
+  | ConstrVar { (fst $1, (:[]) (snd $1)) }
+  | ConstrVar ',' ListConstrVar { (fst $1, (:) (snd $1) (snd $3)) }
 
 DeclHeader :: { (Abs.BNFC'Position, Abs.DeclHeader) }
 DeclHeader

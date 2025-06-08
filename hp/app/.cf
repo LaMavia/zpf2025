@@ -4,12 +4,18 @@ Program. Program ::= [Def] ;
 terminator nonempty Def "." ;
 
 TDef. Def ::= ".decl" LIdent "(" [TypeArg] "|" [TypeArg] ")" ;
+TGDef. Def ::= ".decl" LIdent "[" [Constr] "]" "(" [TypeArg] "|" [TypeArg] ")" ;
 TALit. TypeArg ::= UIdent ;
 TAGen. TypeArg ::= LIdent ;
 TAList. TypeArg ::= "[" TypeArg "]" ;
 TATup. TypeArg ::= "(" [TypeArg] ")" ;
 TAApp. TypeArg ::= TypeArg "(" [TypeArg] ")" ;
 separator TypeArg "," ;
+
+Constr. Constr ::= UIdent "(" [ConstrVar] ")" ;
+ConstrVar. ConstrVar ::= LIdent ;
+separator Constr "," ;
+separator ConstrVar ",";
 
 DFact. Def ::= DeclHeader ;
 DRule. Def ::= DeclHeader ":-" [Stmt] ;

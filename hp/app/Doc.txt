@@ -57,6 +57,7 @@ All other symbols are terminals.
   | //[Def]// | -> | //Def// ``.``
   |  |  **|**  | //Def// ``.`` //[Def]//
   | //Def// | -> | ``.decl`` //LIdent// ``(`` //[TypeArg]// ``|`` //[TypeArg]// ``)``
+  |  |  **|**  | ``.decl`` //LIdent// ``[`` //[Constr]// ``]`` ``(`` //[TypeArg]// ``|`` //[TypeArg]// ``)``
   |  |  **|**  | //DeclHeader//
   |  |  **|**  | //DeclHeader// ``:-`` //[Stmt]//
   | //TypeArg// | -> | //UIdent//
@@ -67,6 +68,14 @@ All other symbols are terminals.
   | //[TypeArg]// | -> | **eps**
   |  |  **|**  | //TypeArg//
   |  |  **|**  | //TypeArg// ``,`` //[TypeArg]//
+  | //Constr// | -> | //UIdent// ``(`` //[ConstrVar]// ``)``
+  | //ConstrVar// | -> | //LIdent//
+  | //[Constr]// | -> | **eps**
+  |  |  **|**  | //Constr//
+  |  |  **|**  | //Constr// ``,`` //[Constr]//
+  | //[ConstrVar]// | -> | **eps**
+  |  |  **|**  | //ConstrVar//
+  |  |  **|**  | //ConstrVar// ``,`` //[ConstrVar]//
   | //DeclHeader// | -> | //LIdent// ``(`` //[Term]// ``)``
   | //Stmt// | -> | ``True``
   |  |  **|**  | ``False``

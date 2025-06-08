@@ -27,6 +27,7 @@ data Decl
          , dOut :: [Type]
          , dTypeVars :: Set Name
          , dClauses :: [DClause]
+         , dConstrs :: [Type]
          }
     deriving (Show)
 
@@ -43,13 +44,9 @@ bundle (A.Program _ defs) = mapM_ bundleDef defs
 bundleDef :: A.Def -> B ()
 bundleDef = \case
   A.TDef _ (A.LIdent name) typeargs1 typeargs2 -> 
-    let dec = Decl { dIdent=name
-                   , dIn=(haskt <$> typeargs1)
-                   , dOut=(haskt <$> typeargs2)
-                   , dTypeVars=(foldr S.union S.empty $ fmap typeVars $ typeargs1 <> typeargs2)
-                   , dClauses = []
-                   }
-    in modify (\s -> s { bsDecls = Map.insert name dec (bsDecls s) })
+    parseDef name [] typeargs1 typeargs2
+  A.TGDef _ (A.LIdent name) constrs typeargs1 typeargs2 ->
+    parseDef name constrs typeargs1 typeargs2
   A.DFact _ (A.DHeader _ (A.LIdent name) args) -> 
     modify (\s -> s {
       bsDecls=Map.update (\d -> Just (d{
@@ -62,6 +59,18 @@ bundleDef = \case
         dClauses=(args, stmts):dClauses d
       })) name (bsDecls s)
     })  
+  where
+    parseDef :: String -> [A.Constr] -> [A.TypeArg] -> [A.TypeArg] -> B ()
+    parseDef name constrs typeargs1 typeargs2 =
+      let dec = Decl { dIdent=name
+                    , dIn=(haskt <$> typeargs1)
+                    , dOut=(haskt <$> typeargs2)
+                    , dTypeVars=(foldr S.union S.empty $ fmap typeVars $ typeargs1 <> typeargs2)
+                    , dClauses = []
+                    , dConstrs = (hConstr <$> constrs)
+                    }
+      in modify (\s -> s { bsDecls = Map.insert name dec (bsDecls s) })
+
 
 
 haskt :: A.TypeArg -> Type
@@ -71,6 +80,10 @@ haskt = \case
   A.TAList _ t -> ListT `AppT` (haskt t)
   A.TAApp _ ft xs ->  foldl AppT (haskt ft) $ fmap haskt xs
   A.TATup _ ts -> tupleType $ fmap haskt ts 
+
+hConstr :: A.Constr -> Type
+hConstr (A.Constr _ (A.UIdent c) vs) = 
+  foldl AppT (ConT (mkName c)) $ fmap (\(A.ConstrVar _ (A.LIdent v)) -> VarT (mkName v)) vs
 
 typeVars :: A.TypeArg -> Set Name
 typeVars = \case

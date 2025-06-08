@@ -25,6 +25,7 @@ data Program' a = Program a [Def' a]
 type Def = Def' BNFC'Position
 data Def' a
     = TDef a LIdent [TypeArg' a] [TypeArg' a]
+    | TGDef a LIdent [Constr' a] [TypeArg' a] [TypeArg' a]
     | DFact a (DeclHeader' a)
     | DRule a (DeclHeader' a) [Stmt' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
@@ -36,6 +37,14 @@ data TypeArg' a
     | TAList a (TypeArg' a)
     | TATup a [TypeArg' a]
     | TAApp a (TypeArg' a) [TypeArg' a]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type Constr = Constr' BNFC'Position
+data Constr' a = Constr a UIdent [ConstrVar' a]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
+
+type ConstrVar = ConstrVar' BNFC'Position
+data ConstrVar' a = ConstrVar a LIdent
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type DeclHeader = DeclHeader' BNFC'Position
@@ -118,6 +127,7 @@ instance HasPosition Program where
 instance HasPosition Def where
   hasPosition = \case
     TDef p _ _ _ -> p
+    TGDef p _ _ _ _ -> p
     DFact p _ -> p
     DRule p _ _ -> p
 
@@ -128,6 +138,14 @@ instance HasPosition TypeArg where
     TAList p _ -> p
     TATup p _ -> p
     TAApp p _ _ -> p
+
+instance HasPosition Constr where
+  hasPosition = \case
+    Constr p _ _ -> p
+
+instance HasPosition ConstrVar where
+  hasPosition = \case
+    ConstrVar p _ -> p
 
 instance HasPosition DeclHeader where
   hasPosition = \case

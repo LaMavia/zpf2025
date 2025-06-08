@@ -54,7 +54,7 @@ data Stmt' a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type Modifier = Modifier' BNFC'Position
-data Modifier' a = MExt a | MCollect a
+data Modifier' a = MExt a | MCollect a | MOnce a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type IExp = IExp' BNFC'Position
@@ -147,6 +147,7 @@ instance HasPosition Modifier where
   hasPosition = \case
     MExt p -> p
     MCollect p -> p
+    MOnce p -> p
 
 instance HasPosition IExp where
   hasPosition = \case

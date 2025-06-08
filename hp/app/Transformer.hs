@@ -21,6 +21,7 @@ import Data.Foldable (toList)
 import Data.List (uncons)
 import Control.Applicative ((<|>))
 import Data.Maybe (fromJust)
+import Debug.Trace (traceShow)
 
 type LogicIO = LogicT IO
 
@@ -51,36 +52,26 @@ runTransM prog m = fst <$> runStateT m s0
             , tsProg = prog
             }
 
--- stdDecls :: Q [Dec]
--- stdDecls = do
---   -- caseName <- newName 
---   caseDecs <- [d| 
---     cases :: Foldable f => f (TransM a) -> TransM a 
---     cases = foldr interleave mzero
---    |]
---   pure (caseDecs ++ [])
- 
-
 transProg :: TransM [Dec] 
 transProg = do 
   prog <- gets tsDecls
   fmap concat $ mapM transDecl $ fmap snd $ M.toList prog 
 
 transDecl :: Decl -> TransM [Dec]
-transDecl (Decl {dIdent=p, dIn=inArgs, dTypeVars=tvars, dOut=outArgs, dClauses=clauses}) = scoped $ do 
+transDecl (Decl {dIdent=p, dIn=inArgs, dTypeVars=tvars, dOut=outArgs, dClauses=clauses, dConstrs=constrs}) = scoped $ do 
   let pName = mkName p
-  sig <- transSignature pName tvars inArgs outArgs
+  sig <- transSignature pName tvars constrs inArgs outArgs
   dec <- transBody pName (length inArgs) (length outArgs) clauses
   pure [sig, dec]
 
-transSignature :: Name -> Set Name -> [Type] -> [Type] -> TransM Dec
-transSignature p (toList -> tvars) ins outs = 
-  return $ SigD 
+transSignature :: Name -> Set Name -> [Type] -> [Type] -> [Type] -> TransM Dec
+transSignature p (toList -> tvars) constrs ins outs = 
+  traceShow constrs $ return $ SigD 
     p 
     (
       ForallT 
         [ PlainTV tv InferredSpec | tv <- tvars ] 
-        [ ConT ''Eq `AppT` (VarT tv) | tv <- tvars ] 
+        ([ ConT ''Eq `AppT` (VarT tv) | tv <- tvars ] <> constrs)
         (ArrowT `AppT` tupleType ins `AppT` (ConT ''Logic `AppT` (tupleType outs)))
     )
   where
