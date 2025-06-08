@@ -35,28 +35,28 @@ data Tree a = Leaf a | Node (Tree a) a (Tree a) deriving (Eq)
 
 sumid :: Num a => [a] -> ([a], a)
 sumid xs = (xs, sum xs)
-
-[hp|
-  .decl add(Int,Int|Int).
-|]
-[hp|
-  .decl treepaths(Tree(a)|[a]).
-  treepaths(Leaf(X), [X]).
-  treepaths(Node(L, X, _), (X:T)) :-
-    treepaths(L, T).
-  treepaths(Node(_, X, R), (X:T)) :-
-    treepaths(R, T).
-  
-  .decl treeeq(Tree(a), Tree(a)|).
-  treeeq(Leaf(X), Leaf(X)).
-  treeeq(Node(L1, X, R1), Node(L2, X, R2)) :-
-    treeeq(L1, L2),
-    treeeq(R1, R2).
-
-  .decl issymm(Tree(a)|).
-  issymm(Leaf(_)).
-  issymm(Node(X, _, X)).
-|]
+--
+-- [hp|
+--   .decl add(Int,Int|Int).
+-- |]
+-- [hp|
+--   .decl treepaths(Tree(a)|[a]).
+--   treepaths(Leaf(X), [X]).
+--   treepaths(Node(L, X, _), (X:T)) :-
+--     treepaths(L, T).
+--   treepaths(Node(_, X, R), (X:T)) :-
+--     treepaths(R, T).
+--
+--   .decl treeeq(Tree(a), Tree(a)|).
+--   treeeq(Leaf(X), Leaf(X)).
+--   treeeq(Node(L1, X, R1), Node(L2, X, R2)) :-
+--     treeeq(L1, L2),
+--     treeeq(R1, R2).
+--
+--   .decl issymm(Tree(a)|).
+--   issymm(Leaf(_)).
+--   issymm(Node(X, _, X)).
+-- |]
 
 {- Prosty graf -}
 -- [hp|
@@ -69,8 +69,12 @@ sumid xs = (xs, sum xs)
 --   node(6).
 --   node(7).
 --
--- %   .decl nodes(|[Int]).
--- %   nodes(Xs) :- collect (Xs) : node(X).
+--   .decl nodes(|[Int]).
+--   nodes(X) :- collect (X) : node(X).
+--
+--   .decl es(|[Int],[Int]).
+--   es(X, Y) :-
+--     collect (X, Y): edge(X, Y).
 --
 --   .decl edge(|Int, Int).
 --   edge(1, 2).
@@ -79,23 +83,23 @@ sumid xs = (xs, sum xs)
 --   edge(4, 5).
 --   edge(4, 6).
 --   edge(1, 4).
---
---   .decl reach(Int|Int).
---   reach(X, X) :- node(X).
---   reach(X, Y) :- 
---     edge(X, Z),
---     reach(Z, Y).
---
---   .decl trails(Int,Int|[Int]).
---   trails(X, X, []).
---   trails(X, Y, (H:T)) :-
---     edge(X, H),
---     trails(H, Y, T).
---
---   .decl trailSum(Int,Int|([Int], Int)).
---   trailSum(X, Y, S) :-
---     trails(X, Y, Trail),
---     ext (S) : sumid(Trail).
+-- % 
+-- %   .decl reach(Int|Int).
+-- %   reach(X, X) :- node(X).
+-- %   reach(X, Y) :- 
+-- %     edge(X, Z),
+-- %     reach(Z, Y).
+-- % 
+-- %   .decl trails(Int,Int|[Int]).
+-- %   trails(X, X, []).
+-- %   trails(X, Y, (H:T)) :-
+-- %     edge(X, H),
+-- %     trails(H, Y, T).
+-- % 
+-- %   .decl trailSum(Int,Int|([Int], Int)).
+-- %   trailSum(X, Y, S) :-
+-- %     trails(X, Y, Trail),
+-- %     ext (S) : sumid(Trail).
 -- |]
 {-  -}
 
@@ -156,7 +160,16 @@ sumid xs = (xs, sum xs)
 --     beforeOne(T, X).
 -- |]
 
+-- [hp|
+--   .decl alleq(a,a,a,a|).
+--   alleq(X,X,X,X).
+-- |]
+
 [hp|
-  .decl alleq(a,a,a,a|).
-  alleq(X,X,X,X).
+  .decl t(|Int,Int,Int).
+  t(1,2,3).
+  t(4,5,6).
+
+  .decl ts(|[Int], [Int], [Int]).
+  ts(X,Y,Z) :- collect (X, Y, Z) : t(X,Y,Z).
 |]

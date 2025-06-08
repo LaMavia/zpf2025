@@ -9,7 +9,7 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Abs as Abs
 import Bundler ( Decl (..), Prog, DClause, tupleType )
-import Control.Monad.Logic (LogicT, Logic, once)
+import Control.Monad.Logic (LogicT, Logic, once, observeAll)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.Sequence as Sq
 import Data.Sequence (Seq)
@@ -20,6 +20,7 @@ import Data.Char (toLower)
 import Data.Foldable (toList)
 import Data.List (uncons)
 import Control.Applicative ((<|>))
+import Data.Maybe (fromJust)
 
 type LogicIO = LogicT IO
 
@@ -217,43 +218,65 @@ transStmt = \case
       guardE $ ParensE (UInfixE ae (UnboundVarE opn) be)
       ]
   Abs.SMod _ mod ts (Abs.LIdent proc) argTerms -> do
-    (rps, ras) <- unzip <$> mapM prepareOutArg ts
-    let rp = tuplePattern rps
-    let ra = foldr (Sq.><) Sq.empty ras 
     case mod of
       Abs.MExt {} -> do 
-        when (length rps /= 1) (error $ showString "Ext call expected exactly 1 output but got«" $ show (length rps))
+        when (length ts /= 1) (error $ showString "Ext call expected exactly 1 output but got«" $ show (length ts))
+        (rps, ras) <- unzip <$> mapM prepareOutArg ts
+        let rp = tuplePattern rps
+        let ra = foldr (Sq.><) Sq.empty ras 
         argExps <- mapM transGroundedTerm argTerms
         return $ Sq.fromList [
             BindS (rps !! 0) $ pureE `AppE` foldl AppE (UnboundVarE (mkName proc)) argExps
           ] Sq.>< ra
       Abs.MOnce {} -> do
-        unless (null rps) $ error $ showString "Once call expected no outputs but got «" $ show (length rps) 
+        unless (null ts) $ error $ showString "Once call expected no outputs but got «" $ show (length ts) 
         (outPats, procn, inExps, append) <- genCallStmt proc argTerms        
         return $ Sq.fromList [
             BindS (tuplePattern outPats) $ UnboundVarE 'once `AppE` ((UnboundVarE procn) `AppE` tupleExp inExps)
           ] Sq.>< append
-      -- Abs.MCollect {} -> do 
-      --   mprocdec <- getDecl proc 
-      --   case mprocdec of 
-      --     Nothing -> error $ showString "Unknown predicate «" $ showString proc $ "»"
-      --     Just (Decl {dIn=pin, dOut=pout}) -> do
-      --       let npin = length pin
-      --       let npout = length pout
-      --       let (inArgs, outArgs) = partitionInOut npin npout argTerms
-      --       inExps <- mapM transGroundedTerm inArgs
-      --       (outPats, outAppends) <- unzip <$> mapM prepareOutArg outArgs
-      --       let outAppend = foldr (Sq.><) Sq.empty outAppends
-      --       return $ Sq.fromList [
-      --           BindS rp 
-      --             $ (UnboundVarE (mkName "pure")) `AppE` 
-      --               UnboundVarE (mkName "observeAll") `AppE` 
-      --               DoE Nothing (toList retstmts)
-      --         ] Sq.>< ra 
+      Abs.MCollect {} -> do 
+        (intOutPats, procn, intInExps, intAppend) <- genCallStmt proc argTerms
+        mvars <- mapM getTermVar ts
+        let outPat = tuplePattern $ fmap VarP mvars
+        let intRetStmt = NoBindS $ pureE `AppE` tupleExp (fmap VarE mvars)
+        unz <- genUnzip (length ts)
 
+        return $ Sq.fromList [
+          LetS [
+              ValD outPat 
+              (NormalB . unz $ (
+                UnboundVarE 'observeAll `AppE` (DoE Nothing $ toList $ Sq.fromList [
+                    BindS (tuplePattern intOutPats) $ UnboundVarE procn `AppE` tupleExp intInExps
+                  ] Sq.>< intAppend Sq.>< Sq.fromList [
+                    intRetStmt
+                  ])
+                )
+              )
+              []
+            ]
+          ]
 
 
   where 
+    genUnzip :: Int -> TransM (Exp -> Exp)
+    genUnzip 0 = return id 
+    genUnzip 1 = return id 
+    genUnzip 2 = return $ \e -> UnboundVarE 'unzip `AppE` e
+    genUnzip 3 = return $ \e -> UnboundVarE 'unzip3 `AppE` e
+    genUnzip n = do 
+      elNames <- mapM (\_ -> lNewName "e") [1..n]
+      liNames <- mapM (\_ -> lNewName "l") [1..n]
+      let zVal = TupE $ replicate n (Just $ ListE [])
+      let paramPats = [TupP (VarP <$> elNames), TildeP (TupP (VarP <$> liNames))]
+      let ret = TupE [Just $ ConE '(:) `AppE` VarE e `AppE` VarE l | (e,l) <- zip elNames liNames]
+      return (UnboundVarE 'foldr `AppE` (LamE paramPats ret) `AppE` zVal `AppE`)
+
+    getTermVar :: Abs.Term -> TransM Name
+    getTermVar = \case
+      Abs.TVar _ (Abs.UIdent (haskifyVarName -> n)) -> fromJust <$> findGroundedName (mkName n)
+      Abs.TIgnore {} -> error "Invalid ignore: collection variable needs to be specified, found «_»"
+      t -> error $ showString "Expected to find var or ignore but found «" $ shows t "»"
+
     prepareOutArg :: Abs.Term -> TransM (Pat, Seq Stmt)
     prepareOutArg = \case 
       (Abs.TStr _ str) -> return (LitP (StringL str), Sq.empty)
@@ -289,6 +312,7 @@ transStmt = \case
         (tps, tas) <- unzip <$> mapM prepareOutArg ts 
         let ta = foldr (Sq.><) Sq.empty tas 
         return (ConP conn [] tps, ta)
+
 
     genCallStmt :: String -> [Abs.Term] -> TransM ([Pat], Name, [Exp], Seq Stmt)
     genCallStmt p argTerms = do 
