@@ -60,6 +60,7 @@ data Stmt' a
     | SIs a UIdent (IExp' a)
     | SRel a (IExp' a) (RelOp' a) (IExp' a)
     | SMod a (Modifier' a) [Term' a] LIdent [Term' a]
+    | SIf a (Stmt' a) [Stmt' a] [Stmt' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable)
 
 type Modifier = Modifier' BNFC'Position
@@ -160,6 +161,7 @@ instance HasPosition Stmt where
     SIs p _ _ -> p
     SRel p _ _ _ -> p
     SMod p _ _ _ _ -> p
+    SIf p _ _ _ -> p
 
 instance HasPosition Modifier where
   hasPosition = \case

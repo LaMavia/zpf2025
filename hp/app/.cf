@@ -29,6 +29,7 @@ SAss. Stmt ::= UIdent "=" Term ;
 SIs. Stmt ::= UIdent "is" IExp ;
 SRel. Stmt ::= IExp RelOp IExp ;
 SMod. Stmt ::= Modifier "(" [Term] ")" ":" LIdent "(" [Term] ")" ;
+SIf. Stmt ::= "(" Stmt "->" [Stmt] ";" [Stmt] ")" ;
 
 MExt. Modifier ::= "ext" ;
 MCollect. Modifier ::= "collect"; 

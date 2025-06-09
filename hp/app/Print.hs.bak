@@ -153,6 +153,7 @@ instance Print [Abs.Def' a] where
 instance Print (Abs.Def' a) where
   prt i = \case
     Abs.TDef _ lident typeargs1 typeargs2 -> prPrec i 0 (concatD [doc (showString ".decl"), prt 0 lident, doc (showString "("), prt 0 typeargs1, doc (showString "|"), prt 0 typeargs2, doc (showString ")")])
+    Abs.TGDef _ lident constrs typeargs1 typeargs2 -> prPrec i 0 (concatD [doc (showString ".decl"), prt 0 lident, doc (showString "["), prt 0 constrs, doc (showString "]"), doc (showString "("), prt 0 typeargs1, doc (showString "|"), prt 0 typeargs2, doc (showString ")")])
     Abs.DFact _ declheader -> prPrec i 0 (concatD [prt 0 declheader])
     Abs.DRule _ declheader stmts -> prPrec i 0 (concatD [prt 0 declheader, doc (showString ":-"), prt 0 stmts])
 
@@ -165,6 +166,24 @@ instance Print (Abs.TypeArg' a) where
     Abs.TAApp _ typearg typeargs -> prPrec i 0 (concatD [prt 0 typearg, doc (showString "("), prt 0 typeargs, doc (showString ")")])
 
 instance Print [Abs.TypeArg' a] where
+  prt _ [] = concatD []
+  prt _ [x] = concatD [prt 0 x]
+  prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
+
+instance Print (Abs.Constr' a) where
+  prt i = \case
+    Abs.Constr _ uident constrvars -> prPrec i 0 (concatD [prt 0 uident, doc (showString "("), prt 0 constrvars, doc (showString ")")])
+
+instance Print (Abs.ConstrVar' a) where
+  prt i = \case
+    Abs.ConstrVar _ lident -> prPrec i 0 (concatD [prt 0 lident])
+
+instance Print [Abs.Constr' a] where
+  prt _ [] = concatD []
+  prt _ [x] = concatD [prt 0 x]
+  prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
+
+instance Print [Abs.ConstrVar' a] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]

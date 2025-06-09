@@ -31,27 +31,29 @@ import Lex
   '+'       { PT _ (TS _ 6)     }
   ','       { PT _ (TS _ 7)     }
   '-'       { PT _ (TS _ 8)     }
-  '.'       { PT _ (TS _ 9)     }
-  '.decl'   { PT _ (TS _ 10)    }
-  '/'       { PT _ (TS _ 11)    }
-  ':'       { PT _ (TS _ 12)    }
-  ':-'      { PT _ (TS _ 13)    }
-  '<'       { PT _ (TS _ 14)    }
-  '<='      { PT _ (TS _ 15)    }
-  '='       { PT _ (TS _ 16)    }
-  '=='      { PT _ (TS _ 17)    }
-  '>'       { PT _ (TS _ 18)    }
-  '>='      { PT _ (TS _ 19)    }
-  'False'   { PT _ (TS _ 20)    }
-  'True'    { PT _ (TS _ 21)    }
-  '['       { PT _ (TS _ 22)    }
-  ']'       { PT _ (TS _ 23)    }
-  '_'       { PT _ (TS _ 24)    }
-  'collect' { PT _ (TS _ 25)    }
-  'ext'     { PT _ (TS _ 26)    }
-  'is'      { PT _ (TS _ 27)    }
-  'once'    { PT _ (TS _ 28)    }
-  '|'       { PT _ (TS _ 29)    }
+  '->'      { PT _ (TS _ 9)     }
+  '.'       { PT _ (TS _ 10)    }
+  '.decl'   { PT _ (TS _ 11)    }
+  '/'       { PT _ (TS _ 12)    }
+  ':'       { PT _ (TS _ 13)    }
+  ':-'      { PT _ (TS _ 14)    }
+  ';'       { PT _ (TS _ 15)    }
+  '<'       { PT _ (TS _ 16)    }
+  '<='      { PT _ (TS _ 17)    }
+  '='       { PT _ (TS _ 18)    }
+  '=='      { PT _ (TS _ 19)    }
+  '>'       { PT _ (TS _ 20)    }
+  '>='      { PT _ (TS _ 21)    }
+  'False'   { PT _ (TS _ 22)    }
+  'True'    { PT _ (TS _ 23)    }
+  '['       { PT _ (TS _ 24)    }
+  ']'       { PT _ (TS _ 25)    }
+  '_'       { PT _ (TS _ 26)    }
+  'collect' { PT _ (TS _ 27)    }
+  'ext'     { PT _ (TS _ 28)    }
+  'is'      { PT _ (TS _ 29)    }
+  'once'    { PT _ (TS _ 30)    }
+  '|'       { PT _ (TS _ 31)    }
   L_integ   { PT _ (TI _)       }
   L_quoted  { PT _ (TL _)       }
   L_UIdent  { PT _ (T_UIdent _) }
@@ -132,6 +134,7 @@ Stmt
   | UIdent 'is' IExp { (fst $1, Abs.SIs (fst $1) (snd $1) (snd $3)) }
   | IExp RelOp IExp { (fst $1, Abs.SRel (fst $1) (snd $1) (snd $2) (snd $3)) }
   | Modifier '(' ListTerm ')' ':' LIdent '(' ListTerm ')' { (fst $1, Abs.SMod (fst $1) (snd $1) (snd $3) (snd $6) (snd $8)) }
+  | '(' Stmt '->' ListStmt ';' ListStmt ')' { (uncurry Abs.BNFC'Position (tokenLineCol $1), Abs.SIf (uncurry Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4) (snd $6)) }
 
 Modifier :: { (Abs.BNFC'Position, Abs.Modifier) }
 Modifier

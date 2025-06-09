@@ -63,6 +63,7 @@ transStmt x = case x of
   Abs.SIs _ uident iexp -> failure x
   Abs.SRel _ iexp1 relop iexp2 -> failure x
   Abs.SMod _ modifier terms1 lident terms2 -> failure x
+  Abs.SIf _ stmt stmts1 stmts2 -> failure x
 
 transModifier :: Show a => Abs.Modifier' a -> Result
 transModifier x = case x of

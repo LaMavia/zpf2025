@@ -201,6 +201,7 @@ instance Print (Abs.Stmt' a) where
     Abs.SIs _ uident iexp -> prPrec i 0 (concatD [prt 0 uident, doc (showString "is"), prt 0 iexp])
     Abs.SRel _ iexp1 relop iexp2 -> prPrec i 0 (concatD [prt 0 iexp1, prt 0 relop, prt 0 iexp2])
     Abs.SMod _ modifier terms1 lident terms2 -> prPrec i 0 (concatD [prt 0 modifier, doc (showString "("), prt 0 terms1, doc (showString ")"), doc (showString ":"), prt 0 lident, doc (showString "("), prt 0 terms2, doc (showString ")")])
+    Abs.SIf _ stmt stmts1 stmts2 -> prPrec i 0 (concatD [doc (showString "("), prt 0 stmt, doc (showString "->"), prt 0 stmts1, doc (showString ";"), prt 0 stmts2, doc (showString ")")])
 
 instance Print (Abs.Modifier' a) where
   prt i = \case

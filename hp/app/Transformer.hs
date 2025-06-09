@@ -9,18 +9,21 @@ import Data.Map (Map)
 import qualified Data.Map as M
 import qualified Abs as Abs
 import Bundler ( Decl (..), Prog, DClause, tupleType )
-import Control.Monad.Logic (LogicT, Logic, once, observeAll)
+import Control.Monad.Logic (LogicT, Logic, once, observeAll, ifte)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.Sequence as Sq
 import Data.Sequence (Seq)
 import Text.Pretty.Simple (pPrint)
 import Data.Maybe (fromMaybe)
-import Control.Monad (forM, zipWithM, forM_, when, guard, unless)
+import Control.Monad (forM, zipWithM, forM_, when, guard, unless, (<$!>))
+import Control.Monad.IO.Class (liftIO)
 import Data.Char (toLower)
 import Data.Foldable (toList)
 import Data.List (uncons, nub)
-import Control.Applicative ((<|>))
+import Control.Applicative ((<|>), liftA3)
 import Data.Maybe (fromJust)
+import Debug.Trace (traceShow)
+import GHC.Stack (currentCallStack, HasCallStack)
 
 type LogicIO = LogicT IO
 
@@ -180,7 +183,7 @@ transStmt = \case
           ] Sq.>< append
       Abs.MCollect {} -> do 
         (intOutPats, procn, intInExps, intAppend) <- genCallStmt proc argTerms
-        mvars <- mapM getTermVar ts
+        mvars <- toList . mconcat <$> mapM extGetTermVars ts
         let outPat = tuplePattern $ fmap VarP mvars
         let intRetStmt = NoBindS $ pureE `AppE` tupleExp (fmap VarE mvars)
         unz <- genUnzip (length ts)
@@ -199,6 +202,31 @@ transStmt = \case
               []
             ]
           ]
+  Abs.SIf _ c ts es -> do
+    cstmts <- transStmt c 
+    (tstmts, tst) <- withStateScoped (mconcat <$> mapM transStmt ts)
+    (estmts, est ) <- withStateScoped (mconcat <$> mapM transStmt es)
+    cvs <- getStmtVars c
+    liftIO (pPrint cvs)
+    vs <- liftA2 (\t e -> cvs <> (t `S.intersection` e)) 
+            (runWithState tst (mconcat <$> mapM getStmtVars ts)) 
+            (runWithState est (mconcat <$> mapM getStmtVars es))
+
+    mapM_ (\v -> addAlias v v >> markGrounded v) vs
+  
+    let cps = tuplePattern (VarP <$> toList cvs)
+    let ps = tuplePattern (VarP <$> toList vs)
+    let cout = tupleExp (VarE <$> toList cvs)
+    let out = tupleExp (VarE <$> toList vs)
+
+    return $ Sq.fromList [
+        BindS ps 
+          $ UnboundVarE 'ifte 
+            `AppE` (DoE Nothing (toList $ cstmts Sq.:|> NoBindS (pureE `AppE` cout)))
+            `AppE` (LamE [cps] (DoE Nothing $ toList $ tstmts Sq.:|> NoBindS (pureE `AppE` out)))
+            `AppE` (DoE Nothing (toList $ estmts Sq.:|> NoBindS (pureE `AppE` out)))
+      ]
+    
   where 
     genUnzip :: Int -> TransM (Exp -> Exp)
     genUnzip 0 = return id 
@@ -213,9 +241,51 @@ transStmt = \case
       let ret = TupE [Just $ ConE '(:) `AppE` VarE e `AppE` VarE l | (e,l) <- zip elNames liNames]
       return (UnboundVarE 'foldr `AppE` (LamE paramPats ret) `AppE` zVal `AppE`)
 
-    getTermVar :: Abs.Term -> TransM Name
-    getTermVar = \case
-      Abs.TVar _ (Abs.UIdent (haskifyVarName -> n)) -> fromJust <$> findGroundedName (mkName n)
+    getStmtVars :: HasCallStack => Abs.Stmt -> TransM (Set Name)
+    getStmtVars = \case 
+      Abs.STrue {} -> return S.empty
+      Abs.SFalse {} -> return S.empty
+      Abs.SCall _ _ ts -> mconcat <$> mapM getTermVars ts
+      Abs.SAss _ l t -> do 
+        lvs <- getTermVars (Abs.TVar Nothing l)
+        tvs <- getTermVars t 
+        return $ lvs <> tvs
+      Abs.SIs _ l rie -> do
+        lvs <- getTermVars (Abs.TVar Nothing l)
+        rvs <- getIExpVars rie 
+        return $ lvs <> rvs
+      Abs.SRel _ l _ r -> do
+        lvs <- getIExpVars l 
+        rvs <- getIExpVars r
+        return $ lvs <> rvs
+      Abs.SMod _ _ ts _ _ -> mconcat <$> mapM getTermVars ts
+      Abs.SIf _ c ts es -> do 
+        cvs <- getStmtVars c
+        tvs <- mconcat <$> mapM getStmtVars ts 
+        evs <- mconcat <$> mapM getStmtVars es 
+        return $ cvs <> tvs <> evs
+
+    getIExpVars :: Abs.IExp -> TransM (Set Name)
+    getIExpVars = \case
+      Abs.IEVar _ (Abs.UIdent (haskifyVarName -> v)) -> S.singleton . fromJust <$> findGroundedName (mkName v)
+      Abs.IELit {} -> return S.empty
+      Abs.IENeg _ e -> getIExpVars e
+      Abs.IEMul _ (getIExpVars -> l) _ (getIExpVars -> r) -> liftA2 (<>) l r
+      Abs.IEAdd _ (getIExpVars -> l) _ (getIExpVars -> r) -> liftA2 (<>) l r
+        
+    getTermVars :: HasCallStack => Abs.Term -> TransM (Set Name)
+    getTermVars = \case 
+      Abs.TStr {} -> return S.empty
+      Abs.TInt {} -> return S.empty
+      Abs.TVar _ (Abs.UIdent (mkName . haskifyVarName -> v)) -> do 
+        mn <- findGroundedName v 
+        case mn of 
+          Just n -> return $ S.singleton n 
+          Nothing -> do { liftIO ( currentCallStack >>= pPrint ); error ":(" }
+
+    extGetTermVars :: Abs.Term -> TransM (Set Name)
+    extGetTermVars = \case
+      Abs.TVar _ (Abs.UIdent (haskifyVarName -> n)) -> S.singleton . fromJust <$> findGroundedName (mkName n)
       Abs.TIgnore {} -> error "Invalid ignore: collection variable needs to be specified, found «_»"
       t -> error $ showString "Expected to find var or ignore but found «" $ shows t "»"
 
@@ -320,7 +390,7 @@ unifyEq :: Name -> Abs.Term -> TransM (Seq Stmt)
 unifyEq n t = do
   gn <- findGroundedName n
   case gn of 
-    Just n' -> Sq.singleton . NoBindS . UInfixE (VarE n') (UnboundVarE '(==)) <$> transGroundedTerm t
+    Just n' -> Sq.singleton . guardEq (VarE n') <$> transGroundedTerm t
     Nothing -> do
       addAlias n n
       markGrounded n 
@@ -374,10 +444,22 @@ reverseParams :: TransM ()
 reverseParams = modify (\s -> s { tsParams = reverse (tsParams s) })
 
 scoped :: TransM a -> TransM a
-scoped m = do
+scoped = fmap fst . withStateScoped
+
+withStateScoped :: TransM a -> TransM (a, TransState)
+withStateScoped m = do
   s <- get 
+  r <- m
+  s' <- get 
+  put s 
+  return (r, s')
+  
+runWithState :: TransState -> TransM a -> TransM a
+runWithState s m = do
+  s' <- get 
+  put s 
   r <- m 
-  put s
+  put s' 
   return r
 
 lNewName :: String -> TransM Name 

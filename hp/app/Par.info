@@ -42,43 +42,44 @@ Grammar
 	Stmt -> UIdent 'is' IExp                           (33)
 	Stmt -> IExp RelOp IExp                            (34)
 	Stmt -> Modifier '(' ListTerm ')' ':' LIdent '(' ListTerm ')'   (35)
-	Modifier -> 'ext'                                  (36)
-	Modifier -> 'collect'                              (37)
-	Modifier -> 'once'                                 (38)
-	IExp3 -> UIdent                                    (39)
-	IExp3 -> Integer                                   (40)
-	IExp3 -> '(' IExp ')'                              (41)
-	IExp2 -> '-' IExp3                                 (42)
-	IExp2 -> IExp3                                     (43)
-	IExp1 -> IExp1 MulOp IExp2                         (44)
-	IExp1 -> IExp2                                     (45)
-	IExp -> IExp AddOp IExp1                           (46)
-	IExp -> IExp1                                      (47)
-	AddOp -> '+'                                       (48)
-	AddOp -> '-'                                       (49)
-	MulOp -> '*'                                       (50)
-	MulOp -> '/'                                       (51)
-	MulOp -> '%'                                       (52)
-	RelOp -> '<'                                       (53)
-	RelOp -> '<='                                      (54)
-	RelOp -> '>'                                       (55)
-	RelOp -> '>='                                      (56)
-	RelOp -> '=='                                      (57)
-	RelOp -> '!='                                      (58)
-	Term -> String                                     (59)
-	Term -> Integer                                    (60)
-	Term -> UIdent                                     (61)
-	Term -> '_'                                        (62)
-	Term -> '[' ListTerm ']'                           (63)
-	Term -> '(' Term ':' Term ')'                      (64)
-	Term -> '(' ListTerm ')'                           (65)
-	Term -> UIdent '(' ListTerm ')'                    (66)
-	ListTerm ->                                        (67)
-	ListTerm -> Term                                   (68)
-	ListTerm -> Term ',' ListTerm                      (69)
-	ListStmt ->                                        (70)
-	ListStmt -> Stmt                                   (71)
-	ListStmt -> Stmt ',' ListStmt                      (72)
+	Stmt -> '(' Stmt '->' ListStmt ';' ListStmt ')'    (36)
+	Modifier -> 'ext'                                  (37)
+	Modifier -> 'collect'                              (38)
+	Modifier -> 'once'                                 (39)
+	IExp3 -> UIdent                                    (40)
+	IExp3 -> Integer                                   (41)
+	IExp3 -> '(' IExp ')'                              (42)
+	IExp2 -> '-' IExp3                                 (43)
+	IExp2 -> IExp3                                     (44)
+	IExp1 -> IExp1 MulOp IExp2                         (45)
+	IExp1 -> IExp2                                     (46)
+	IExp -> IExp AddOp IExp1                           (47)
+	IExp -> IExp1                                      (48)
+	AddOp -> '+'                                       (49)
+	AddOp -> '-'                                       (50)
+	MulOp -> '*'                                       (51)
+	MulOp -> '/'                                       (52)
+	MulOp -> '%'                                       (53)
+	RelOp -> '<'                                       (54)
+	RelOp -> '<='                                      (55)
+	RelOp -> '>'                                       (56)
+	RelOp -> '>='                                      (57)
+	RelOp -> '=='                                      (58)
+	RelOp -> '!='                                      (59)
+	Term -> String                                     (60)
+	Term -> Integer                                    (61)
+	Term -> UIdent                                     (62)
+	Term -> '_'                                        (63)
+	Term -> '[' ListTerm ']'                           (64)
+	Term -> '(' Term ':' Term ')'                      (65)
+	Term -> '(' ListTerm ')'                           (66)
+	Term -> UIdent '(' ListTerm ')'                    (67)
+	ListTerm ->                                        (68)
+	ListTerm -> Term                                   (69)
+	ListTerm -> Term ',' ListTerm                      (70)
+	ListStmt ->                                        (71)
+	ListStmt -> Stmt                                   (72)
+	ListStmt -> Stmt ',' ListStmt                      (73)
 
 -----------------------------------------------------------------------------
 Terminals
@@ -91,27 +92,29 @@ Terminals
 	'+'            { PT _ (TS _ 6) }
 	','            { PT _ (TS _ 7) }
 	'-'            { PT _ (TS _ 8) }
-	'.'            { PT _ (TS _ 9) }
-	'.decl'        { PT _ (TS _ 10) }
-	'/'            { PT _ (TS _ 11) }
-	':'            { PT _ (TS _ 12) }
-	':-'           { PT _ (TS _ 13) }
-	'<'            { PT _ (TS _ 14) }
-	'<='           { PT _ (TS _ 15) }
-	'='            { PT _ (TS _ 16) }
-	'=='           { PT _ (TS _ 17) }
-	'>'            { PT _ (TS _ 18) }
-	'>='           { PT _ (TS _ 19) }
-	'False'        { PT _ (TS _ 20) }
-	'True'         { PT _ (TS _ 21) }
-	'['            { PT _ (TS _ 22) }
-	']'            { PT _ (TS _ 23) }
-	'_'            { PT _ (TS _ 24) }
-	'collect'      { PT _ (TS _ 25) }
-	'ext'          { PT _ (TS _ 26) }
-	'is'           { PT _ (TS _ 27) }
-	'once'         { PT _ (TS _ 28) }
-	'|'            { PT _ (TS _ 29) }
+	'->'           { PT _ (TS _ 9) }
+	'.'            { PT _ (TS _ 10) }
+	'.decl'        { PT _ (TS _ 11) }
+	'/'            { PT _ (TS _ 12) }
+	':'            { PT _ (TS _ 13) }
+	':-'           { PT _ (TS _ 14) }
+	';'            { PT _ (TS _ 15) }
+	'<'            { PT _ (TS _ 16) }
+	'<='           { PT _ (TS _ 17) }
+	'='            { PT _ (TS _ 18) }
+	'=='           { PT _ (TS _ 19) }
+	'>'            { PT _ (TS _ 20) }
+	'>='           { PT _ (TS _ 21) }
+	'False'        { PT _ (TS _ 22) }
+	'True'         { PT _ (TS _ 23) }
+	'['            { PT _ (TS _ 24) }
+	']'            { PT _ (TS _ 25) }
+	'_'            { PT _ (TS _ 26) }
+	'collect'      { PT _ (TS _ 27) }
+	'ext'          { PT _ (TS _ 28) }
+	'is'           { PT _ (TS _ 29) }
+	'once'         { PT _ (TS _ 30) }
+	'|'            { PT _ (TS _ 31) }
 	L_integ        { PT _ (TI _) }
 	L_quoted       { PT _ (TL _) }
 	L_UIdent       { PT _ (T_UIdent _) }
@@ -135,18 +138,18 @@ Non-terminals
 	ListConstr      rules 22, 23, 24
 	ListConstrVar   rules 25, 26, 27
 	DeclHeader      rule  28
-	Stmt            rules 29, 30, 31, 32, 33, 34, 35
-	Modifier        rules 36, 37, 38
-	IExp3           rules 39, 40, 41
-	IExp2           rules 42, 43
-	IExp1           rules 44, 45
-	IExp            rules 46, 47
-	AddOp           rules 48, 49
-	MulOp           rules 50, 51, 52
-	RelOp           rules 53, 54, 55, 56, 57, 58
-	Term            rules 59, 60, 61, 62, 63, 64, 65, 66
-	ListTerm        rules 67, 68, 69
-	ListStmt        rules 70, 71, 72
+	Stmt            rules 29, 30, 31, 32, 33, 34, 35, 36
+	Modifier        rules 37, 38, 39
+	IExp3           rules 40, 41, 42
+	IExp2           rules 43, 44
+	IExp1           rules 45, 46
+	IExp            rules 47, 48
+	AddOp           rules 49, 50
+	MulOp           rules 51, 52, 53
+	RelOp           rules 54, 55, 56, 57, 58, 59
+	Term            rules 60, 61, 62, 63, 64, 65, 66, 67
+	ListTerm        rules 68, 69, 70
+	ListStmt        rules 71, 72, 73
 
 -----------------------------------------------------------------------------
 States
@@ -182,9 +185,11 @@ State 2
 	'+'            reduce using rule 1
 	','            reduce using rule 1
 	'-'            reduce using rule 1
+	'->'           reduce using rule 1
 	'.'            reduce using rule 1
 	'/'            reduce using rule 1
 	':'            reduce using rule 1
+	';'            reduce using rule 1
 	'<'            reduce using rule 1
 	'<='           reduce using rule 1
 	'=='           reduce using rule 1
@@ -267,7 +272,7 @@ State 11
 
 	'('            shift, and enter state 35
 	'-'            shift, and enter state 36
-	'.'            reduce using rule 70
+	'.'            reduce using rule 71
 	'False'        shift, and enter state 37
 	'True'         shift, and enter state 38
 	'collect'      shift, and enter state 39
@@ -307,7 +312,7 @@ State 13
 	DeclHeader -> LIdent '(' . ListTerm ')'             (rule 28)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 67
+	')'            reduce using rule 68
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -322,63 +327,69 @@ State 13
 
 State 14
 
-	Term -> Integer .                                   (rule 60)
+	Term -> Integer .                                   (rule 61)
 
-	')'            reduce using rule 60
-	','            reduce using rule 60
-	'.'            reduce using rule 60
-	':'            reduce using rule 60
-	']'            reduce using rule 60
+	')'            reduce using rule 61
+	','            reduce using rule 61
+	'->'           reduce using rule 61
+	'.'            reduce using rule 61
+	':'            reduce using rule 61
+	';'            reduce using rule 61
+	']'            reduce using rule 61
 
 
 State 15
 
-	Term -> String .                                    (rule 59)
+	Term -> String .                                    (rule 60)
 
-	')'            reduce using rule 59
-	','            reduce using rule 59
-	'.'            reduce using rule 59
-	':'            reduce using rule 59
-	']'            reduce using rule 59
+	')'            reduce using rule 60
+	','            reduce using rule 60
+	'->'           reduce using rule 60
+	'.'            reduce using rule 60
+	':'            reduce using rule 60
+	';'            reduce using rule 60
+	']'            reduce using rule 60
 
 
 State 16
 
-	Term -> UIdent .                                    (rule 61)
-	Term -> UIdent . '(' ListTerm ')'                   (rule 66)
+	Term -> UIdent .                                    (rule 62)
+	Term -> UIdent . '(' ListTerm ')'                   (rule 67)
 
-	'('            shift, and enter state 80
-	')'            reduce using rule 61
-	','            reduce using rule 61
-	'.'            reduce using rule 61
-	':'            reduce using rule 61
-	']'            reduce using rule 61
+	'('            shift, and enter state 82
+	')'            reduce using rule 62
+	','            reduce using rule 62
+	'->'           reduce using rule 62
+	'.'            reduce using rule 62
+	':'            reduce using rule 62
+	';'            reduce using rule 62
+	']'            reduce using rule 62
 
 
 State 17
 
-	ListTerm -> Term .                                  (rule 68)
-	ListTerm -> Term . ',' ListTerm                     (rule 69)
+	ListTerm -> Term .                                  (rule 69)
+	ListTerm -> Term . ',' ListTerm                     (rule 70)
 
-	')'            reduce using rule 68
-	','            shift, and enter state 79
-	']'            reduce using rule 68
+	')'            reduce using rule 69
+	','            shift, and enter state 81
+	']'            reduce using rule 69
 
 
 State 18
 
 	DeclHeader -> LIdent '(' ListTerm . ')'             (rule 28)
 
-	')'            shift, and enter state 78
+	')'            shift, and enter state 80
 
 
 State 19
 
-	Term -> '(' . Term ':' Term ')'                     (rule 64)
-	Term -> '(' . ListTerm ')'                          (rule 65)
+	Term -> '(' . Term ':' Term ')'                     (rule 65)
+	Term -> '(' . ListTerm ')'                          (rule 66)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 67
+	')'            reduce using rule 68
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -388,16 +399,16 @@ State 19
 	Integer        goto state 14
 	String         goto state 15
 	UIdent         goto state 16
-	Term           goto state 76
-	ListTerm       goto state 77
+	Term           goto state 78
+	ListTerm       goto state 79
 
 State 20
 
-	Term -> '[' . ListTerm ']'                          (rule 63)
+	Term -> '[' . ListTerm ']'                          (rule 64)
 
 	'('            shift, and enter state 19
 	'['            shift, and enter state 20
-	']'            reduce using rule 67
+	']'            reduce using rule 68
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
 	L_quoted       shift, and enter state 22
@@ -407,17 +418,19 @@ State 20
 	String         goto state 15
 	UIdent         goto state 16
 	Term           goto state 17
-	ListTerm       goto state 75
+	ListTerm       goto state 77
 
 State 21
 
-	Term -> '_' .                                       (rule 62)
+	Term -> '_' .                                       (rule 63)
 
-	')'            reduce using rule 62
-	','            reduce using rule 62
-	'.'            reduce using rule 62
-	':'            reduce using rule 62
-	']'            reduce using rule 62
+	')'            reduce using rule 63
+	','            reduce using rule 63
+	'->'           reduce using rule 63
+	'.'            reduce using rule 63
+	':'            reduce using rule 63
+	';'            reduce using rule 63
+	']'            reduce using rule 63
 
 
 State 22
@@ -426,8 +439,10 @@ State 22
 
 	')'            reduce using rule 2
 	','            reduce using rule 2
+	'->'           reduce using rule 2
 	'.'            reduce using rule 2
 	':'            reduce using rule 2
+	';'            reduce using rule 2
 	']'            reduce using rule 2
 
 
@@ -443,9 +458,11 @@ State 23
 	'+'            reduce using rule 3
 	','            reduce using rule 3
 	'-'            reduce using rule 3
+	'->'           reduce using rule 3
 	'.'            reduce using rule 3
 	'/'            reduce using rule 3
 	':'            reduce using rule 3
+	';'            reduce using rule 3
 	'<'            reduce using rule 3
 	'<='           reduce using rule 3
 	'='            reduce using rule 3
@@ -466,146 +483,157 @@ State 24
 
 State 25
 
-	IExp3 -> Integer .                                  (rule 40)
+	IExp3 -> Integer .                                  (rule 41)
 
-	'!='           reduce using rule 40
-	'%'            reduce using rule 40
-	')'            reduce using rule 40
-	'*'            reduce using rule 40
-	'+'            reduce using rule 40
-	','            reduce using rule 40
-	'-'            reduce using rule 40
-	'.'            reduce using rule 40
-	'/'            reduce using rule 40
-	'<'            reduce using rule 40
-	'<='           reduce using rule 40
-	'=='           reduce using rule 40
-	'>'            reduce using rule 40
-	'>='           reduce using rule 40
+	'!='           reduce using rule 41
+	'%'            reduce using rule 41
+	')'            reduce using rule 41
+	'*'            reduce using rule 41
+	'+'            reduce using rule 41
+	','            reduce using rule 41
+	'-'            reduce using rule 41
+	'->'           reduce using rule 41
+	'.'            reduce using rule 41
+	'/'            reduce using rule 41
+	';'            reduce using rule 41
+	'<'            reduce using rule 41
+	'<='           reduce using rule 41
+	'=='           reduce using rule 41
+	'>'            reduce using rule 41
+	'>='           reduce using rule 41
 
 
 State 26
 
 	Stmt -> UIdent . '=' Term                           (rule 32)
 	Stmt -> UIdent . 'is' IExp                          (rule 33)
-	IExp3 -> UIdent .                                   (rule 39)
+	IExp3 -> UIdent .                                   (rule 40)
 
-	'!='           reduce using rule 39
-	'%'            reduce using rule 39
-	'*'            reduce using rule 39
-	'+'            reduce using rule 39
-	'-'            reduce using rule 39
-	'/'            reduce using rule 39
-	'<'            reduce using rule 39
-	'<='           reduce using rule 39
-	'='            shift, and enter state 73
-	'=='           reduce using rule 39
-	'>'            reduce using rule 39
-	'>='           reduce using rule 39
-	'is'           shift, and enter state 74
+	'!='           reduce using rule 40
+	'%'            reduce using rule 40
+	')'            reduce using rule 40
+	'*'            reduce using rule 40
+	'+'            reduce using rule 40
+	'-'            reduce using rule 40
+	'/'            reduce using rule 40
+	'<'            reduce using rule 40
+	'<='           reduce using rule 40
+	'='            shift, and enter state 75
+	'=='           reduce using rule 40
+	'>'            reduce using rule 40
+	'>='           reduce using rule 40
+	'is'           shift, and enter state 76
 
 
 State 27
 
 	Stmt -> LIdent . '(' ListTerm ')'                   (rule 31)
 
-	'('            shift, and enter state 72
+	'('            shift, and enter state 74
 
 
 State 28
 
-	ListStmt -> Stmt .                                  (rule 71)
-	ListStmt -> Stmt . ',' ListStmt                     (rule 72)
+	ListStmt -> Stmt .                                  (rule 72)
+	ListStmt -> Stmt . ',' ListStmt                     (rule 73)
 
-	','            shift, and enter state 71
-	'.'            reduce using rule 71
+	')'            reduce using rule 72
+	','            shift, and enter state 73
+	'.'            reduce using rule 72
+	';'            reduce using rule 72
 
 
 State 29
 
 	Stmt -> Modifier . '(' ListTerm ')' ':' LIdent '(' ListTerm ')'    (rule 35)
 
-	'('            shift, and enter state 70
+	'('            shift, and enter state 72
 
 
 State 30
 
-	IExp2 -> IExp3 .                                    (rule 43)
+	IExp2 -> IExp3 .                                    (rule 44)
 
-	'!='           reduce using rule 43
-	'%'            reduce using rule 43
-	')'            reduce using rule 43
-	'*'            reduce using rule 43
-	'+'            reduce using rule 43
-	','            reduce using rule 43
-	'-'            reduce using rule 43
-	'.'            reduce using rule 43
-	'/'            reduce using rule 43
-	'<'            reduce using rule 43
-	'<='           reduce using rule 43
-	'=='           reduce using rule 43
-	'>'            reduce using rule 43
-	'>='           reduce using rule 43
+	'!='           reduce using rule 44
+	'%'            reduce using rule 44
+	')'            reduce using rule 44
+	'*'            reduce using rule 44
+	'+'            reduce using rule 44
+	','            reduce using rule 44
+	'-'            reduce using rule 44
+	'->'           reduce using rule 44
+	'.'            reduce using rule 44
+	'/'            reduce using rule 44
+	';'            reduce using rule 44
+	'<'            reduce using rule 44
+	'<='           reduce using rule 44
+	'=='           reduce using rule 44
+	'>'            reduce using rule 44
+	'>='           reduce using rule 44
 
 
 State 31
 
-	IExp1 -> IExp2 .                                    (rule 45)
+	IExp1 -> IExp2 .                                    (rule 46)
 
-	'!='           reduce using rule 45
-	'%'            reduce using rule 45
-	')'            reduce using rule 45
-	'*'            reduce using rule 45
-	'+'            reduce using rule 45
-	','            reduce using rule 45
-	'-'            reduce using rule 45
-	'.'            reduce using rule 45
-	'/'            reduce using rule 45
-	'<'            reduce using rule 45
-	'<='           reduce using rule 45
-	'=='           reduce using rule 45
-	'>'            reduce using rule 45
-	'>='           reduce using rule 45
+	'!='           reduce using rule 46
+	'%'            reduce using rule 46
+	')'            reduce using rule 46
+	'*'            reduce using rule 46
+	'+'            reduce using rule 46
+	','            reduce using rule 46
+	'-'            reduce using rule 46
+	'->'           reduce using rule 46
+	'.'            reduce using rule 46
+	'/'            reduce using rule 46
+	';'            reduce using rule 46
+	'<'            reduce using rule 46
+	'<='           reduce using rule 46
+	'=='           reduce using rule 46
+	'>'            reduce using rule 46
+	'>='           reduce using rule 46
 
 
 State 32
 
-	IExp1 -> IExp1 . MulOp IExp2                        (rule 44)
-	IExp -> IExp1 .                                     (rule 47)
+	IExp1 -> IExp1 . MulOp IExp2                        (rule 45)
+	IExp -> IExp1 .                                     (rule 48)
 
-	'!='           reduce using rule 47
-	'%'            shift, and enter state 67
-	')'            reduce using rule 47
-	'*'            shift, and enter state 68
-	'+'            reduce using rule 47
-	','            reduce using rule 47
-	'-'            reduce using rule 47
-	'.'            reduce using rule 47
-	'/'            shift, and enter state 69
-	'<'            reduce using rule 47
-	'<='           reduce using rule 47
-	'=='           reduce using rule 47
-	'>'            reduce using rule 47
-	'>='           reduce using rule 47
+	'!='           reduce using rule 48
+	'%'            shift, and enter state 69
+	')'            reduce using rule 48
+	'*'            shift, and enter state 70
+	'+'            reduce using rule 48
+	','            reduce using rule 48
+	'-'            reduce using rule 48
+	'->'           reduce using rule 48
+	'.'            reduce using rule 48
+	'/'            shift, and enter state 71
+	';'            reduce using rule 48
+	'<'            reduce using rule 48
+	'<='           reduce using rule 48
+	'=='           reduce using rule 48
+	'>'            reduce using rule 48
+	'>='           reduce using rule 48
 
-	MulOp          goto state 66
+	MulOp          goto state 68
 
 State 33
 
 	Stmt -> IExp . RelOp IExp                           (rule 34)
-	IExp -> IExp . AddOp IExp1                          (rule 46)
+	IExp -> IExp . AddOp IExp1                          (rule 47)
 
-	'!='           shift, and enter state 58
-	'+'            shift, and enter state 59
-	'-'            shift, and enter state 60
-	'<'            shift, and enter state 61
-	'<='           shift, and enter state 62
-	'=='           shift, and enter state 63
-	'>'            shift, and enter state 64
-	'>='           shift, and enter state 65
+	'!='           shift, and enter state 60
+	'+'            shift, and enter state 61
+	'-'            shift, and enter state 62
+	'<'            shift, and enter state 63
+	'<='           shift, and enter state 64
+	'=='           shift, and enter state 65
+	'>'            shift, and enter state 66
+	'>='           shift, and enter state 67
 
-	AddOp          goto state 56
-	RelOp          goto state 57
+	AddOp          goto state 58
+	RelOp          goto state 59
 
 State 34
 
@@ -616,25 +644,35 @@ State 34
 
 State 35
 
-	IExp3 -> '(' . IExp ')'                             (rule 41)
+	Stmt -> '(' . Stmt '->' ListStmt ';' ListStmt ')'    (rule 36)
+	IExp3 -> '(' . IExp ')'                             (rule 42)
 
 	'('            shift, and enter state 35
 	'-'            shift, and enter state 36
+	'False'        shift, and enter state 37
+	'True'         shift, and enter state 38
+	'collect'      shift, and enter state 39
+	'ext'          shift, and enter state 40
+	'once'         shift, and enter state 41
 	L_integ        shift, and enter state 2
 	L_UIdent       shift, and enter state 23
+	L_LIdent       shift, and enter state 9
 
 	Integer        goto state 25
-	UIdent         goto state 53
+	UIdent         goto state 26
+	LIdent         goto state 27
+	Stmt           goto state 56
+	Modifier       goto state 29
 	IExp3          goto state 30
 	IExp2          goto state 31
 	IExp1          goto state 32
-	IExp           goto state 55
+	IExp           goto state 57
 
 State 36
 
-	IExp2 -> '-' . IExp3                                (rule 42)
+	IExp2 -> '-' . IExp3                                (rule 43)
 
-	'('            shift, and enter state 35
+	'('            shift, and enter state 55
 	L_integ        shift, and enter state 2
 	L_UIdent       shift, and enter state 23
 
@@ -646,37 +684,43 @@ State 37
 
 	Stmt -> 'False' .                                   (rule 30)
 
+	')'            reduce using rule 30
 	','            reduce using rule 30
+	'->'           reduce using rule 30
 	'.'            reduce using rule 30
+	';'            reduce using rule 30
 
 
 State 38
 
 	Stmt -> 'True' .                                    (rule 29)
 
+	')'            reduce using rule 29
 	','            reduce using rule 29
+	'->'           reduce using rule 29
 	'.'            reduce using rule 29
+	';'            reduce using rule 29
 
 
 State 39
 
-	Modifier -> 'collect' .                             (rule 37)
+	Modifier -> 'collect' .                             (rule 38)
 
-	'('            reduce using rule 37
+	'('            reduce using rule 38
 
 
 State 40
 
-	Modifier -> 'ext' .                                 (rule 36)
+	Modifier -> 'ext' .                                 (rule 37)
 
-	'('            reduce using rule 36
+	'('            reduce using rule 37
 
 
 State 41
 
-	Modifier -> 'once' .                                (rule 38)
+	Modifier -> 'once' .                                (rule 39)
 
-	'('            reduce using rule 38
+	'('            reduce using rule 39
 
 
 State 42
@@ -709,7 +753,7 @@ State 44
 
 	Constr -> UIdent . '(' ListConstrVar ')'            (rule 20)
 
-	'('            shift, and enter state 102
+	'('            shift, and enter state 106
 
 
 State 45
@@ -717,7 +761,7 @@ State 45
 	ListConstr -> Constr .                              (rule 23)
 	ListConstr -> Constr . ',' ListConstr               (rule 24)
 
-	','            shift, and enter state 101
+	','            shift, and enter state 105
 	']'            reduce using rule 23
 
 
@@ -725,7 +769,7 @@ State 46
 
 	Def -> '.decl' LIdent '[' ListConstr . ']' '(' ListTypeArg '|' ListTypeArg ')'    (rule 9)
 
-	']'            shift, and enter state 100
+	']'            shift, and enter state 104
 
 
 State 47
@@ -756,9 +800,9 @@ State 49
 	ListTypeArg -> TypeArg .                            (rule 18)
 	ListTypeArg -> TypeArg . ',' ListTypeArg            (rule 19)
 
-	'('            shift, and enter state 98
+	'('            shift, and enter state 102
 	')'            reduce using rule 18
-	','            shift, and enter state 99
+	','            shift, and enter state 103
 	'|'            reduce using rule 18
 
 
@@ -766,7 +810,7 @@ State 50
 
 	Def -> '.decl' LIdent '(' ListTypeArg . '|' ListTypeArg ')'    (rule 8)
 
-	'|'            shift, and enter state 97
+	'|'            shift, and enter state 101
 
 
 State 51
@@ -782,7 +826,7 @@ State 51
 	UIdent         goto state 47
 	LIdent         goto state 48
 	TypeArg        goto state 49
-	ListTypeArg    goto state 96
+	ListTypeArg    goto state 100
 
 State 52
 
@@ -795,79 +839,57 @@ State 52
 
 	UIdent         goto state 47
 	LIdent         goto state 48
-	TypeArg        goto state 95
+	TypeArg        goto state 99
 
 State 53
 
-	IExp3 -> UIdent .                                   (rule 39)
+	IExp3 -> UIdent .                                   (rule 40)
 
-	'!='           reduce using rule 39
-	'%'            reduce using rule 39
-	')'            reduce using rule 39
-	'*'            reduce using rule 39
-	'+'            reduce using rule 39
-	','            reduce using rule 39
-	'-'            reduce using rule 39
-	'.'            reduce using rule 39
-	'/'            reduce using rule 39
-	'<'            reduce using rule 39
-	'<='           reduce using rule 39
-	'=='           reduce using rule 39
-	'>'            reduce using rule 39
-	'>='           reduce using rule 39
+	'!='           reduce using rule 40
+	'%'            reduce using rule 40
+	')'            reduce using rule 40
+	'*'            reduce using rule 40
+	'+'            reduce using rule 40
+	','            reduce using rule 40
+	'-'            reduce using rule 40
+	'->'           reduce using rule 40
+	'.'            reduce using rule 40
+	'/'            reduce using rule 40
+	';'            reduce using rule 40
+	'<'            reduce using rule 40
+	'<='           reduce using rule 40
+	'=='           reduce using rule 40
+	'>'            reduce using rule 40
+	'>='           reduce using rule 40
 
 
 State 54
 
-	IExp2 -> '-' IExp3 .                                (rule 42)
+	IExp2 -> '-' IExp3 .                                (rule 43)
 
-	'!='           reduce using rule 42
-	'%'            reduce using rule 42
-	')'            reduce using rule 42
-	'*'            reduce using rule 42
-	'+'            reduce using rule 42
-	','            reduce using rule 42
-	'-'            reduce using rule 42
-	'.'            reduce using rule 42
-	'/'            reduce using rule 42
-	'<'            reduce using rule 42
-	'<='           reduce using rule 42
-	'=='           reduce using rule 42
-	'>'            reduce using rule 42
-	'>='           reduce using rule 42
+	'!='           reduce using rule 43
+	'%'            reduce using rule 43
+	')'            reduce using rule 43
+	'*'            reduce using rule 43
+	'+'            reduce using rule 43
+	','            reduce using rule 43
+	'-'            reduce using rule 43
+	'->'           reduce using rule 43
+	'.'            reduce using rule 43
+	'/'            reduce using rule 43
+	';'            reduce using rule 43
+	'<'            reduce using rule 43
+	'<='           reduce using rule 43
+	'=='           reduce using rule 43
+	'>'            reduce using rule 43
+	'>='           reduce using rule 43
 
 
 State 55
 
-	IExp3 -> '(' IExp . ')'                             (rule 41)
-	IExp -> IExp . AddOp IExp1                          (rule 46)
+	IExp3 -> '(' . IExp ')'                             (rule 42)
 
-	')'            shift, and enter state 94
-	'+'            shift, and enter state 59
-	'-'            shift, and enter state 60
-
-	AddOp          goto state 56
-
-State 56
-
-	IExp -> IExp AddOp . IExp1                          (rule 46)
-
-	'('            shift, and enter state 35
-	'-'            shift, and enter state 36
-	L_integ        shift, and enter state 2
-	L_UIdent       shift, and enter state 23
-
-	Integer        goto state 25
-	UIdent         goto state 53
-	IExp3          goto state 30
-	IExp2          goto state 31
-	IExp1          goto state 93
-
-State 57
-
-	Stmt -> IExp RelOp . IExp                           (rule 34)
-
-	'('            shift, and enter state 35
+	'('            shift, and enter state 55
 	'-'            shift, and enter state 36
 	L_integ        shift, and enter state 2
 	L_UIdent       shift, and enter state 23
@@ -877,31 +899,78 @@ State 57
 	IExp3          goto state 30
 	IExp2          goto state 31
 	IExp1          goto state 32
-	IExp           goto state 92
+	IExp           goto state 98
+
+State 56
+
+	Stmt -> '(' Stmt . '->' ListStmt ';' ListStmt ')'    (rule 36)
+
+	'->'           shift, and enter state 97
+
+
+State 57
+
+	Stmt -> IExp . RelOp IExp                           (rule 34)
+	IExp3 -> '(' IExp . ')'                             (rule 42)
+	IExp -> IExp . AddOp IExp1                          (rule 47)
+
+	'!='           shift, and enter state 60
+	')'            shift, and enter state 96
+	'+'            shift, and enter state 61
+	'-'            shift, and enter state 62
+	'<'            shift, and enter state 63
+	'<='           shift, and enter state 64
+	'=='           shift, and enter state 65
+	'>'            shift, and enter state 66
+	'>='           shift, and enter state 67
+
+	AddOp          goto state 58
+	RelOp          goto state 59
 
 State 58
 
-	RelOp -> '!=' .                                     (rule 58)
+	IExp -> IExp AddOp . IExp1                          (rule 47)
 
-	'('            reduce using rule 58
-	'-'            reduce using rule 58
-	L_integ        reduce using rule 58
-	L_UIdent       reduce using rule 58
+	'('            shift, and enter state 55
+	'-'            shift, and enter state 36
+	L_integ        shift, and enter state 2
+	L_UIdent       shift, and enter state 23
 
+	Integer        goto state 25
+	UIdent         goto state 53
+	IExp3          goto state 30
+	IExp2          goto state 31
+	IExp1          goto state 95
 
 State 59
 
-	AddOp -> '+' .                                      (rule 48)
+	Stmt -> IExp RelOp . IExp                           (rule 34)
 
-	'('            reduce using rule 48
-	'-'            reduce using rule 48
-	L_integ        reduce using rule 48
-	L_UIdent       reduce using rule 48
+	'('            shift, and enter state 55
+	'-'            shift, and enter state 36
+	L_integ        shift, and enter state 2
+	L_UIdent       shift, and enter state 23
 
+	Integer        goto state 25
+	UIdent         goto state 53
+	IExp3          goto state 30
+	IExp2          goto state 31
+	IExp1          goto state 32
+	IExp           goto state 94
 
 State 60
 
-	AddOp -> '-' .                                      (rule 49)
+	RelOp -> '!=' .                                     (rule 59)
+
+	'('            reduce using rule 59
+	'-'            reduce using rule 59
+	L_integ        reduce using rule 59
+	L_UIdent       reduce using rule 59
+
+
+State 61
+
+	AddOp -> '+' .                                      (rule 49)
 
 	'('            reduce using rule 49
 	'-'            reduce using rule 49
@@ -909,19 +978,19 @@ State 60
 	L_UIdent       reduce using rule 49
 
 
-State 61
-
-	RelOp -> '<' .                                      (rule 53)
-
-	'('            reduce using rule 53
-	'-'            reduce using rule 53
-	L_integ        reduce using rule 53
-	L_UIdent       reduce using rule 53
-
-
 State 62
 
-	RelOp -> '<=' .                                     (rule 54)
+	AddOp -> '-' .                                      (rule 50)
+
+	'('            reduce using rule 50
+	'-'            reduce using rule 50
+	L_integ        reduce using rule 50
+	L_UIdent       reduce using rule 50
+
+
+State 63
+
+	RelOp -> '<' .                                      (rule 54)
 
 	'('            reduce using rule 54
 	'-'            reduce using rule 54
@@ -929,19 +998,9 @@ State 62
 	L_UIdent       reduce using rule 54
 
 
-State 63
-
-	RelOp -> '==' .                                     (rule 57)
-
-	'('            reduce using rule 57
-	'-'            reduce using rule 57
-	L_integ        reduce using rule 57
-	L_UIdent       reduce using rule 57
-
-
 State 64
 
-	RelOp -> '>' .                                      (rule 55)
+	RelOp -> '<=' .                                     (rule 55)
 
 	'('            reduce using rule 55
 	'-'            reduce using rule 55
@@ -951,7 +1010,17 @@ State 64
 
 State 65
 
-	RelOp -> '>=' .                                     (rule 56)
+	RelOp -> '==' .                                     (rule 58)
+
+	'('            reduce using rule 58
+	'-'            reduce using rule 58
+	L_integ        reduce using rule 58
+	L_UIdent       reduce using rule 58
+
+
+State 66
+
+	RelOp -> '>' .                                      (rule 56)
 
 	'('            reduce using rule 56
 	'-'            reduce using rule 56
@@ -959,11 +1028,21 @@ State 65
 	L_UIdent       reduce using rule 56
 
 
-State 66
+State 67
 
-	IExp1 -> IExp1 MulOp . IExp2                        (rule 44)
+	RelOp -> '>=' .                                     (rule 57)
 
-	'('            shift, and enter state 35
+	'('            reduce using rule 57
+	'-'            reduce using rule 57
+	L_integ        reduce using rule 57
+	L_UIdent       reduce using rule 57
+
+
+State 68
+
+	IExp1 -> IExp1 MulOp . IExp2                        (rule 45)
+
+	'('            shift, and enter state 55
 	'-'            shift, and enter state 36
 	L_integ        shift, and enter state 2
 	L_UIdent       shift, and enter state 23
@@ -971,31 +1050,21 @@ State 66
 	Integer        goto state 25
 	UIdent         goto state 53
 	IExp3          goto state 30
-	IExp2          goto state 91
-
-State 67
-
-	MulOp -> '%' .                                      (rule 52)
-
-	'('            reduce using rule 52
-	'-'            reduce using rule 52
-	L_integ        reduce using rule 52
-	L_UIdent       reduce using rule 52
-
-
-State 68
-
-	MulOp -> '*' .                                      (rule 50)
-
-	'('            reduce using rule 50
-	'-'            reduce using rule 50
-	L_integ        reduce using rule 50
-	L_UIdent       reduce using rule 50
-
+	IExp2          goto state 93
 
 State 69
 
-	MulOp -> '/' .                                      (rule 51)
+	MulOp -> '%' .                                      (rule 53)
+
+	'('            reduce using rule 53
+	'-'            reduce using rule 53
+	L_integ        reduce using rule 53
+	L_UIdent       reduce using rule 53
+
+
+State 70
+
+	MulOp -> '*' .                                      (rule 51)
 
 	'('            reduce using rule 51
 	'-'            reduce using rule 51
@@ -1003,12 +1072,22 @@ State 69
 	L_UIdent       reduce using rule 51
 
 
-State 70
+State 71
+
+	MulOp -> '/' .                                      (rule 52)
+
+	'('            reduce using rule 52
+	'-'            reduce using rule 52
+	L_integ        reduce using rule 52
+	L_UIdent       reduce using rule 52
+
+
+State 72
 
 	Stmt -> Modifier '(' . ListTerm ')' ':' LIdent '(' ListTerm ')'    (rule 35)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 67
+	')'            reduce using rule 68
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -1019,15 +1098,17 @@ State 70
 	String         goto state 15
 	UIdent         goto state 16
 	Term           goto state 17
-	ListTerm       goto state 90
+	ListTerm       goto state 92
 
-State 71
+State 73
 
-	ListStmt -> Stmt ',' . ListStmt                     (rule 72)
+	ListStmt -> Stmt ',' . ListStmt                     (rule 73)
 
 	'('            shift, and enter state 35
+	')'            reduce using rule 71
 	'-'            shift, and enter state 36
-	'.'            reduce using rule 70
+	'.'            reduce using rule 71
+	';'            reduce using rule 71
 	'False'        shift, and enter state 37
 	'True'         shift, and enter state 38
 	'collect'      shift, and enter state 39
@@ -1046,14 +1127,14 @@ State 71
 	IExp2          goto state 31
 	IExp1          goto state 32
 	IExp           goto state 33
-	ListStmt       goto state 89
+	ListStmt       goto state 91
 
-State 72
+State 74
 
 	Stmt -> LIdent '(' . ListTerm ')'                   (rule 31)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 67
+	')'            reduce using rule 68
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -1064,9 +1145,9 @@ State 72
 	String         goto state 15
 	UIdent         goto state 16
 	Term           goto state 17
-	ListTerm       goto state 88
+	ListTerm       goto state 90
 
-State 73
+State 75
 
 	Stmt -> UIdent '=' . Term                           (rule 32)
 
@@ -1080,13 +1161,13 @@ State 73
 	Integer        goto state 14
 	String         goto state 15
 	UIdent         goto state 16
-	Term           goto state 87
+	Term           goto state 89
 
-State 74
+State 76
 
 	Stmt -> UIdent 'is' . IExp                          (rule 33)
 
-	'('            shift, and enter state 35
+	'('            shift, and enter state 55
 	'-'            shift, and enter state 36
 	L_integ        shift, and enter state 2
 	L_UIdent       shift, and enter state 23
@@ -1096,34 +1177,34 @@ State 74
 	IExp3          goto state 30
 	IExp2          goto state 31
 	IExp1          goto state 32
-	IExp           goto state 86
-
-State 75
-
-	Term -> '[' ListTerm . ']'                          (rule 63)
-
-	']'            shift, and enter state 85
-
-
-State 76
-
-	Term -> '(' Term . ':' Term ')'                     (rule 64)
-	ListTerm -> Term .                                  (rule 68)
-	ListTerm -> Term . ',' ListTerm                     (rule 69)
-
-	')'            reduce using rule 68
-	','            shift, and enter state 79
-	':'            shift, and enter state 84
-
+	IExp           goto state 88
 
 State 77
 
-	Term -> '(' ListTerm . ')'                          (rule 65)
+	Term -> '[' ListTerm . ']'                          (rule 64)
 
-	')'            shift, and enter state 83
+	']'            shift, and enter state 87
 
 
 State 78
+
+	Term -> '(' Term . ':' Term ')'                     (rule 65)
+	ListTerm -> Term .                                  (rule 69)
+	ListTerm -> Term . ',' ListTerm                     (rule 70)
+
+	')'            reduce using rule 69
+	','            shift, and enter state 81
+	':'            shift, and enter state 86
+
+
+State 79
+
+	Term -> '(' ListTerm . ')'                          (rule 66)
+
+	')'            shift, and enter state 85
+
+
+State 80
 
 	DeclHeader -> LIdent '(' ListTerm ')' .             (rule 28)
 
@@ -1131,72 +1212,74 @@ State 78
 	':-'           reduce using rule 28
 
 
-State 79
-
-	ListTerm -> Term ',' . ListTerm                     (rule 69)
-
-	'('            shift, and enter state 19
-	')'            reduce using rule 67
-	'['            shift, and enter state 20
-	']'            reduce using rule 67
-	'_'            shift, and enter state 21
-	L_integ        shift, and enter state 2
-	L_quoted       shift, and enter state 22
-	L_UIdent       shift, and enter state 23
-
-	Integer        goto state 14
-	String         goto state 15
-	UIdent         goto state 16
-	Term           goto state 17
-	ListTerm       goto state 82
-
-State 80
-
-	Term -> UIdent '(' . ListTerm ')'                   (rule 66)
-
-	'('            shift, and enter state 19
-	')'            reduce using rule 67
-	'['            shift, and enter state 20
-	'_'            shift, and enter state 21
-	L_integ        shift, and enter state 2
-	L_quoted       shift, and enter state 22
-	L_UIdent       shift, and enter state 23
-
-	Integer        goto state 14
-	String         goto state 15
-	UIdent         goto state 16
-	Term           goto state 17
-	ListTerm       goto state 81
-
 State 81
 
-	Term -> UIdent '(' ListTerm . ')'                   (rule 66)
+	ListTerm -> Term ',' . ListTerm                     (rule 70)
 
-	')'            shift, and enter state 116
+	'('            shift, and enter state 19
+	')'            reduce using rule 68
+	'['            shift, and enter state 20
+	']'            reduce using rule 68
+	'_'            shift, and enter state 21
+	L_integ        shift, and enter state 2
+	L_quoted       shift, and enter state 22
+	L_UIdent       shift, and enter state 23
 
+	Integer        goto state 14
+	String         goto state 15
+	UIdent         goto state 16
+	Term           goto state 17
+	ListTerm       goto state 84
 
 State 82
 
-	ListTerm -> Term ',' ListTerm .                     (rule 69)
+	Term -> UIdent '(' . ListTerm ')'                   (rule 67)
 
-	')'            reduce using rule 69
-	']'            reduce using rule 69
+	'('            shift, and enter state 19
+	')'            reduce using rule 68
+	'['            shift, and enter state 20
+	'_'            shift, and enter state 21
+	L_integ        shift, and enter state 2
+	L_quoted       shift, and enter state 22
+	L_UIdent       shift, and enter state 23
 
+	Integer        goto state 14
+	String         goto state 15
+	UIdent         goto state 16
+	Term           goto state 17
+	ListTerm       goto state 83
 
 State 83
 
-	Term -> '(' ListTerm ')' .                          (rule 65)
+	Term -> UIdent '(' ListTerm . ')'                   (rule 67)
 
-	')'            reduce using rule 65
-	','            reduce using rule 65
-	'.'            reduce using rule 65
-	':'            reduce using rule 65
-	']'            reduce using rule 65
+	')'            shift, and enter state 121
 
 
 State 84
 
-	Term -> '(' Term ':' . Term ')'                     (rule 64)
+	ListTerm -> Term ',' ListTerm .                     (rule 70)
+
+	')'            reduce using rule 70
+	']'            reduce using rule 70
+
+
+State 85
+
+	Term -> '(' ListTerm ')' .                          (rule 66)
+
+	')'            reduce using rule 66
+	','            reduce using rule 66
+	'->'           reduce using rule 66
+	'.'            reduce using rule 66
+	':'            reduce using rule 66
+	';'            reduce using rule 66
+	']'            reduce using rule 66
+
+
+State 86
+
+	Term -> '(' Term ':' . Term ')'                     (rule 65)
 
 	'('            shift, and enter state 19
 	'['            shift, and enter state 20
@@ -1208,151 +1291,208 @@ State 84
 	Integer        goto state 14
 	String         goto state 15
 	UIdent         goto state 16
-	Term           goto state 115
-
-State 85
-
-	Term -> '[' ListTerm ']' .                          (rule 63)
-
-	')'            reduce using rule 63
-	','            reduce using rule 63
-	'.'            reduce using rule 63
-	':'            reduce using rule 63
-	']'            reduce using rule 63
-
-
-State 86
-
-	Stmt -> UIdent 'is' IExp .                          (rule 33)
-	IExp -> IExp . AddOp IExp1                          (rule 46)
-
-	'+'            shift, and enter state 59
-	','            reduce using rule 33
-	'-'            shift, and enter state 60
-	'.'            reduce using rule 33
-
-	AddOp          goto state 56
+	Term           goto state 120
 
 State 87
 
-	Stmt -> UIdent '=' Term .                           (rule 32)
+	Term -> '[' ListTerm ']' .                          (rule 64)
 
-	','            reduce using rule 32
-	'.'            reduce using rule 32
+	')'            reduce using rule 64
+	','            reduce using rule 64
+	'->'           reduce using rule 64
+	'.'            reduce using rule 64
+	':'            reduce using rule 64
+	';'            reduce using rule 64
+	']'            reduce using rule 64
 
 
 State 88
 
-	Stmt -> LIdent '(' ListTerm . ')'                   (rule 31)
+	Stmt -> UIdent 'is' IExp .                          (rule 33)
+	IExp -> IExp . AddOp IExp1                          (rule 47)
 
-	')'            shift, and enter state 114
+	')'            reduce using rule 33
+	'+'            shift, and enter state 61
+	','            reduce using rule 33
+	'-'            shift, and enter state 62
+	'->'           reduce using rule 33
+	'.'            reduce using rule 33
+	';'            reduce using rule 33
 
+	AddOp          goto state 58
 
 State 89
 
-	ListStmt -> Stmt ',' ListStmt .                     (rule 72)
+	Stmt -> UIdent '=' Term .                           (rule 32)
 
-	'.'            reduce using rule 72
+	')'            reduce using rule 32
+	','            reduce using rule 32
+	'->'           reduce using rule 32
+	'.'            reduce using rule 32
+	';'            reduce using rule 32
 
 
 State 90
 
-	Stmt -> Modifier '(' ListTerm . ')' ':' LIdent '(' ListTerm ')'    (rule 35)
+	Stmt -> LIdent '(' ListTerm . ')'                   (rule 31)
 
-	')'            shift, and enter state 113
+	')'            shift, and enter state 119
 
 
 State 91
 
-	IExp1 -> IExp1 MulOp IExp2 .                        (rule 44)
+	ListStmt -> Stmt ',' ListStmt .                     (rule 73)
 
-	'!='           reduce using rule 44
-	'%'            reduce using rule 44
-	')'            reduce using rule 44
-	'*'            reduce using rule 44
-	'+'            reduce using rule 44
-	','            reduce using rule 44
-	'-'            reduce using rule 44
-	'.'            reduce using rule 44
-	'/'            reduce using rule 44
-	'<'            reduce using rule 44
-	'<='           reduce using rule 44
-	'=='           reduce using rule 44
-	'>'            reduce using rule 44
-	'>='           reduce using rule 44
+	')'            reduce using rule 73
+	'.'            reduce using rule 73
+	';'            reduce using rule 73
 
 
 State 92
 
-	Stmt -> IExp RelOp IExp .                           (rule 34)
-	IExp -> IExp . AddOp IExp1                          (rule 46)
+	Stmt -> Modifier '(' ListTerm . ')' ':' LIdent '(' ListTerm ')'    (rule 35)
 
-	'+'            shift, and enter state 59
-	','            reduce using rule 34
-	'-'            shift, and enter state 60
-	'.'            reduce using rule 34
+	')'            shift, and enter state 118
 
-	AddOp          goto state 56
 
 State 93
 
-	IExp1 -> IExp1 . MulOp IExp2                        (rule 44)
-	IExp -> IExp AddOp IExp1 .                          (rule 46)
+	IExp1 -> IExp1 MulOp IExp2 .                        (rule 45)
 
-	'!='           reduce using rule 46
-	'%'            shift, and enter state 67
-	')'            reduce using rule 46
-	'*'            shift, and enter state 68
-	'+'            reduce using rule 46
-	','            reduce using rule 46
-	'-'            reduce using rule 46
-	'.'            reduce using rule 46
-	'/'            shift, and enter state 69
-	'<'            reduce using rule 46
-	'<='           reduce using rule 46
-	'=='           reduce using rule 46
-	'>'            reduce using rule 46
-	'>='           reduce using rule 46
+	'!='           reduce using rule 45
+	'%'            reduce using rule 45
+	')'            reduce using rule 45
+	'*'            reduce using rule 45
+	'+'            reduce using rule 45
+	','            reduce using rule 45
+	'-'            reduce using rule 45
+	'->'           reduce using rule 45
+	'.'            reduce using rule 45
+	'/'            reduce using rule 45
+	';'            reduce using rule 45
+	'<'            reduce using rule 45
+	'<='           reduce using rule 45
+	'=='           reduce using rule 45
+	'>'            reduce using rule 45
+	'>='           reduce using rule 45
 
-	MulOp          goto state 66
 
 State 94
 
-	IExp3 -> '(' IExp ')' .                             (rule 41)
+	Stmt -> IExp RelOp IExp .                           (rule 34)
+	IExp -> IExp . AddOp IExp1                          (rule 47)
 
-	'!='           reduce using rule 41
-	'%'            reduce using rule 41
-	')'            reduce using rule 41
-	'*'            reduce using rule 41
-	'+'            reduce using rule 41
-	','            reduce using rule 41
-	'-'            reduce using rule 41
-	'.'            reduce using rule 41
-	'/'            reduce using rule 41
-	'<'            reduce using rule 41
-	'<='           reduce using rule 41
-	'=='           reduce using rule 41
-	'>'            reduce using rule 41
-	'>='           reduce using rule 41
+	')'            reduce using rule 34
+	'+'            shift, and enter state 61
+	','            reduce using rule 34
+	'-'            shift, and enter state 62
+	'->'           reduce using rule 34
+	'.'            reduce using rule 34
+	';'            reduce using rule 34
 
+	AddOp          goto state 58
 
 State 95
+
+	IExp1 -> IExp1 . MulOp IExp2                        (rule 45)
+	IExp -> IExp AddOp IExp1 .                          (rule 47)
+
+	'!='           reduce using rule 47
+	'%'            shift, and enter state 69
+	')'            reduce using rule 47
+	'*'            shift, and enter state 70
+	'+'            reduce using rule 47
+	','            reduce using rule 47
+	'-'            reduce using rule 47
+	'->'           reduce using rule 47
+	'.'            reduce using rule 47
+	'/'            shift, and enter state 71
+	';'            reduce using rule 47
+	'<'            reduce using rule 47
+	'<='           reduce using rule 47
+	'=='           reduce using rule 47
+	'>'            reduce using rule 47
+	'>='           reduce using rule 47
+
+	MulOp          goto state 68
+
+State 96
+
+	IExp3 -> '(' IExp ')' .                             (rule 42)
+
+	'!='           reduce using rule 42
+	'%'            reduce using rule 42
+	')'            reduce using rule 42
+	'*'            reduce using rule 42
+	'+'            reduce using rule 42
+	','            reduce using rule 42
+	'-'            reduce using rule 42
+	'->'           reduce using rule 42
+	'.'            reduce using rule 42
+	'/'            reduce using rule 42
+	';'            reduce using rule 42
+	'<'            reduce using rule 42
+	'<='           reduce using rule 42
+	'=='           reduce using rule 42
+	'>'            reduce using rule 42
+	'>='           reduce using rule 42
+
+
+State 97
+
+	Stmt -> '(' Stmt '->' . ListStmt ';' ListStmt ')'    (rule 36)
+
+	'('            shift, and enter state 35
+	'-'            shift, and enter state 36
+	';'            reduce using rule 71
+	'False'        shift, and enter state 37
+	'True'         shift, and enter state 38
+	'collect'      shift, and enter state 39
+	'ext'          shift, and enter state 40
+	'once'         shift, and enter state 41
+	L_integ        shift, and enter state 2
+	L_UIdent       shift, and enter state 23
+	L_LIdent       shift, and enter state 9
+
+	Integer        goto state 25
+	UIdent         goto state 26
+	LIdent         goto state 27
+	Stmt           goto state 28
+	Modifier       goto state 29
+	IExp3          goto state 30
+	IExp2          goto state 31
+	IExp1          goto state 32
+	IExp           goto state 33
+	ListStmt       goto state 117
+
+State 98
+
+	IExp3 -> '(' IExp . ')'                             (rule 42)
+	IExp -> IExp . AddOp IExp1                          (rule 47)
+
+	')'            shift, and enter state 96
+	'+'            shift, and enter state 61
+	'-'            shift, and enter state 62
+
+	AddOp          goto state 58
+
+State 99
 
 	TypeArg -> '[' TypeArg . ']'                        (rule 14)
 	TypeArg -> TypeArg . '(' ListTypeArg ')'            (rule 16)
 
-	'('            shift, and enter state 98
-	']'            shift, and enter state 112
+	'('            shift, and enter state 102
+	']'            shift, and enter state 116
 
 
-State 96
+State 100
 
 	TypeArg -> '(' ListTypeArg . ')'                    (rule 15)
 
-	')'            shift, and enter state 111
+	')'            shift, and enter state 115
 
 
-State 97
+State 101
 
 	Def -> '.decl' LIdent '(' ListTypeArg '|' . ListTypeArg ')'    (rule 8)
 
@@ -1365,9 +1505,9 @@ State 97
 	UIdent         goto state 47
 	LIdent         goto state 48
 	TypeArg        goto state 49
-	ListTypeArg    goto state 110
+	ListTypeArg    goto state 114
 
-State 98
+State 102
 
 	TypeArg -> TypeArg '(' . ListTypeArg ')'            (rule 16)
 
@@ -1380,9 +1520,9 @@ State 98
 	UIdent         goto state 47
 	LIdent         goto state 48
 	TypeArg        goto state 49
-	ListTypeArg    goto state 109
+	ListTypeArg    goto state 113
 
-State 99
+State 103
 
 	ListTypeArg -> TypeArg ',' . ListTypeArg            (rule 19)
 
@@ -1396,16 +1536,16 @@ State 99
 	UIdent         goto state 47
 	LIdent         goto state 48
 	TypeArg        goto state 49
-	ListTypeArg    goto state 108
+	ListTypeArg    goto state 112
 
-State 100
+State 104
 
 	Def -> '.decl' LIdent '[' ListConstr ']' . '(' ListTypeArg '|' ListTypeArg ')'    (rule 9)
 
-	'('            shift, and enter state 107
+	'('            shift, and enter state 111
 
 
-State 101
+State 105
 
 	ListConstr -> Constr ',' . ListConstr               (rule 24)
 
@@ -1414,20 +1554,20 @@ State 101
 
 	UIdent         goto state 44
 	Constr         goto state 45
-	ListConstr     goto state 106
+	ListConstr     goto state 110
 
-State 102
+State 106
 
 	Constr -> UIdent '(' . ListConstrVar ')'            (rule 20)
 
 	')'            reduce using rule 25
 	L_LIdent       shift, and enter state 9
 
-	LIdent         goto state 103
-	ConstrVar      goto state 104
-	ListConstrVar  goto state 105
+	LIdent         goto state 107
+	ConstrVar      goto state 108
+	ListConstrVar  goto state 109
 
-State 103
+State 107
 
 	ConstrVar -> LIdent .                               (rule 21)
 
@@ -1435,30 +1575,30 @@ State 103
 	','            reduce using rule 21
 
 
-State 104
+State 108
 
 	ListConstrVar -> ConstrVar .                        (rule 26)
 	ListConstrVar -> ConstrVar . ',' ListConstrVar      (rule 27)
 
 	')'            reduce using rule 26
-	','            shift, and enter state 123
+	','            shift, and enter state 129
 
 
-State 105
+State 109
 
 	Constr -> UIdent '(' ListConstrVar . ')'            (rule 20)
 
-	')'            shift, and enter state 122
+	')'            shift, and enter state 128
 
 
-State 106
+State 110
 
 	ListConstr -> Constr ',' ListConstr .               (rule 24)
 
 	']'            reduce using rule 24
 
 
-State 107
+State 111
 
 	Def -> '.decl' LIdent '[' ListConstr ']' '(' . ListTypeArg '|' ListTypeArg ')'    (rule 9)
 
@@ -1471,9 +1611,9 @@ State 107
 	UIdent         goto state 47
 	LIdent         goto state 48
 	TypeArg        goto state 49
-	ListTypeArg    goto state 121
+	ListTypeArg    goto state 127
 
-State 108
+State 112
 
 	ListTypeArg -> TypeArg ',' ListTypeArg .            (rule 19)
 
@@ -1481,21 +1621,21 @@ State 108
 	'|'            reduce using rule 19
 
 
-State 109
+State 113
 
 	TypeArg -> TypeArg '(' ListTypeArg . ')'            (rule 16)
 
-	')'            shift, and enter state 120
+	')'            shift, and enter state 126
 
 
-State 110
+State 114
 
 	Def -> '.decl' LIdent '(' ListTypeArg '|' ListTypeArg . ')'    (rule 8)
 
-	')'            shift, and enter state 119
+	')'            shift, and enter state 125
 
 
-State 111
+State 115
 
 	TypeArg -> '(' ListTypeArg ')' .                    (rule 15)
 
@@ -1506,7 +1646,7 @@ State 111
 	'|'            reduce using rule 15
 
 
-State 112
+State 116
 
 	TypeArg -> '[' TypeArg ']' .                        (rule 14)
 
@@ -1517,66 +1657,107 @@ State 112
 	'|'            reduce using rule 14
 
 
-State 113
-
-	Stmt -> Modifier '(' ListTerm ')' . ':' LIdent '(' ListTerm ')'    (rule 35)
-
-	':'            shift, and enter state 118
-
-
-State 114
-
-	Stmt -> LIdent '(' ListTerm ')' .                   (rule 31)
-
-	','            reduce using rule 31
-	'.'            reduce using rule 31
-
-
-State 115
-
-	Term -> '(' Term ':' Term . ')'                     (rule 64)
-
-	')'            shift, and enter state 117
-
-
-State 116
-
-	Term -> UIdent '(' ListTerm ')' .                   (rule 66)
-
-	')'            reduce using rule 66
-	','            reduce using rule 66
-	'.'            reduce using rule 66
-	':'            reduce using rule 66
-	']'            reduce using rule 66
-
-
 State 117
 
-	Term -> '(' Term ':' Term ')' .                     (rule 64)
+	Stmt -> '(' Stmt '->' ListStmt . ';' ListStmt ')'    (rule 36)
 
-	')'            reduce using rule 64
-	','            reduce using rule 64
-	'.'            reduce using rule 64
-	':'            reduce using rule 64
-	']'            reduce using rule 64
+	';'            shift, and enter state 124
 
 
 State 118
+
+	Stmt -> Modifier '(' ListTerm ')' . ':' LIdent '(' ListTerm ')'    (rule 35)
+
+	':'            shift, and enter state 123
+
+
+State 119
+
+	Stmt -> LIdent '(' ListTerm ')' .                   (rule 31)
+
+	')'            reduce using rule 31
+	','            reduce using rule 31
+	'->'           reduce using rule 31
+	'.'            reduce using rule 31
+	';'            reduce using rule 31
+
+
+State 120
+
+	Term -> '(' Term ':' Term . ')'                     (rule 65)
+
+	')'            shift, and enter state 122
+
+
+State 121
+
+	Term -> UIdent '(' ListTerm ')' .                   (rule 67)
+
+	')'            reduce using rule 67
+	','            reduce using rule 67
+	'->'           reduce using rule 67
+	'.'            reduce using rule 67
+	':'            reduce using rule 67
+	';'            reduce using rule 67
+	']'            reduce using rule 67
+
+
+State 122
+
+	Term -> '(' Term ':' Term ')' .                     (rule 65)
+
+	')'            reduce using rule 65
+	','            reduce using rule 65
+	'->'           reduce using rule 65
+	'.'            reduce using rule 65
+	':'            reduce using rule 65
+	';'            reduce using rule 65
+	']'            reduce using rule 65
+
+
+State 123
 
 	Stmt -> Modifier '(' ListTerm ')' ':' . LIdent '(' ListTerm ')'    (rule 35)
 
 	L_LIdent       shift, and enter state 9
 
-	LIdent         goto state 126
+	LIdent         goto state 133
 
-State 119
+State 124
+
+	Stmt -> '(' Stmt '->' ListStmt ';' . ListStmt ')'    (rule 36)
+
+	'('            shift, and enter state 35
+	')'            reduce using rule 71
+	'-'            shift, and enter state 36
+	'False'        shift, and enter state 37
+	'True'         shift, and enter state 38
+	'collect'      shift, and enter state 39
+	'ext'          shift, and enter state 40
+	'once'         shift, and enter state 41
+	L_integ        shift, and enter state 2
+	L_UIdent       shift, and enter state 23
+	L_LIdent       shift, and enter state 9
+
+	Integer        goto state 25
+	UIdent         goto state 26
+	LIdent         goto state 27
+	Stmt           goto state 28
+	Modifier       goto state 29
+	IExp3          goto state 30
+	IExp2          goto state 31
+	IExp1          goto state 32
+	IExp           goto state 33
+	ListStmt       goto state 132
+
+State 125
 
 	Def -> '.decl' LIdent '(' ListTypeArg '|' ListTypeArg ')' .    (rule 8)
 
 	'.'            reduce using rule 8
 
 
-State 120
+State 126
 
 	TypeArg -> TypeArg '(' ListTypeArg ')' .            (rule 16)
 
@@ -1587,14 +1768,14 @@ State 120
 	'|'            reduce using rule 16
 
 
-State 121
+State 127
 
 	Def -> '.decl' LIdent '[' ListConstr ']' '(' ListTypeArg . '|' ListTypeArg ')'    (rule 9)
 
-	'|'            shift, and enter state 125
+	'|'            shift, and enter state 131
 
 
-State 122
+State 128
 
 	Constr -> UIdent '(' ListConstrVar ')' .            (rule 20)
 
@@ -1602,25 +1783,25 @@ State 122
 	']'            reduce using rule 20
 
 
-State 123
+State 129
 
 	ListConstrVar -> ConstrVar ',' . ListConstrVar      (rule 27)
 
 	')'            reduce using rule 25
 	L_LIdent       shift, and enter state 9
 
-	LIdent         goto state 103
-	ConstrVar      goto state 104
-	ListConstrVar  goto state 124
+	LIdent         goto state 107
+	ConstrVar      goto state 108
+	ListConstrVar  goto state 130
 
-State 124
+State 130
 
 	ListConstrVar -> ConstrVar ',' ListConstrVar .      (rule 27)
 
 	')'            reduce using rule 27
 
 
-State 125
+State 131
 
 	Def -> '.decl' LIdent '[' ListConstr ']' '(' ListTypeArg '|' . ListTypeArg ')'    (rule 9)
 
@@ -1633,21 +1814,28 @@ State 125
 	UIdent         goto state 47
 	LIdent         goto state 48
 	TypeArg        goto state 49
-	ListTypeArg    goto state 128
+	ListTypeArg    goto state 136
 
-State 126
+State 132
+
+	Stmt -> '(' Stmt '->' ListStmt ';' ListStmt . ')'    (rule 36)
+
+	')'            shift, and enter state 135
+
+
+State 133
 
 	Stmt -> Modifier '(' ListTerm ')' ':' LIdent . '(' ListTerm ')'    (rule 35)
 
-	'('            shift, and enter state 127
+	'('            shift, and enter state 134
 
 
-State 127
+State 134
 
 	Stmt -> Modifier '(' ListTerm ')' ':' LIdent '(' . ListTerm ')'    (rule 35)
 
 	'('            shift, and enter state 19
-	')'            reduce using rule 67
+	')'            reduce using rule 68
 	'['            shift, and enter state 20
 	'_'            shift, and enter state 21
 	L_integ        shift, and enter state 2
@@ -1658,41 +1846,55 @@ State 127
 	String         goto state 15
 	UIdent         goto state 16
 	Term           goto state 17
-	ListTerm       goto state 130
+	ListTerm       goto state 138
 
-State 128
+State 135
+
+	Stmt -> '(' Stmt '->' ListStmt ';' ListStmt ')' .    (rule 36)
+
+	')'            reduce using rule 36
+	','            reduce using rule 36
+	'->'           reduce using rule 36
+	'.'            reduce using rule 36
+	';'            reduce using rule 36
+
+
+State 136
 
 	Def -> '.decl' LIdent '[' ListConstr ']' '(' ListTypeArg '|' ListTypeArg . ')'    (rule 9)
 
-	')'            shift, and enter state 129
+	')'            shift, and enter state 137
 
 
-State 129
+State 137
 
 	Def -> '.decl' LIdent '[' ListConstr ']' '(' ListTypeArg '|' ListTypeArg ')' .    (rule 9)
 
 	'.'            reduce using rule 9
 
 
-State 130
+State 138
 
 	Stmt -> Modifier '(' ListTerm ')' ':' LIdent '(' ListTerm . ')'    (rule 35)
 
-	')'            shift, and enter state 131
+	')'            shift, and enter state 139
 
 
-State 131
+State 139
 
 	Stmt -> Modifier '(' ListTerm ')' ':' LIdent '(' ListTerm ')' .    (rule 35)
 
+	')'            reduce using rule 35
 	','            reduce using rule 35
+	'->'           reduce using rule 35
 	'.'            reduce using rule 35
+	';'            reduce using rule 35
 
 
 -----------------------------------------------------------------------------
 Grammar Totals
 -----------------------------------------------------------------------------
-Number of rules: 73
-Number of terminals: 33
+Number of rules: 74
+Number of terminals: 35
 Number of non-terminals: 27
-Number of states: 132
+Number of states: 140

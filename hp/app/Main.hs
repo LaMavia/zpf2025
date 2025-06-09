@@ -38,71 +38,75 @@ sumid :: Num a => [a] -> ([a], a)
 sumid xs = (xs, sum xs)
 
 {- Prosty graf -}
-[hp|
-  .decl node(|Int).
-  node(1).
-  node(2).
-  node(3).
-  node(4).
-  node(5).
-  node(6).
-  node(7).
-
-  .decl edge(|Int, Int).
-  edge(1, 2).
-  edge(2, 3).
-  edge(3, 4).
-  edge(1, 3).
-  edge(1, 4).
-  edge(5, 6).
-  edge(6, 7).
-  edge(5, 7).
-
-  .decl uedge(|Int, Int).
-  uedge(X, Y) :- edge(X, Y).
-  uedge(X, Y) :- edge(Y, X).
-
-  .decl trails(Int | [Int]).
-  trails(X, T) :-
-    trailsAux(X, [], T).
-
-  .decl el([a], a|).
-  el((X:_), X).
-  el((_:L), X) :- el(L, X).
-
-  .decl notEl([a], a|).
-  notEl([], _).
-  notEl((H:T), X) :-
-    H != X,
-    notEl(T, X).
-
-  .decl trailsAux(Int, [Int] | [Int]).
-  trailsAux(X, V, VR) :-
-    once () : el(V, X),
-    ext (VR) : reverse(V).
-  trailsAux(X, V, T) :-
-    once () : notEl(V, X),
-    uedge(X, Y),
-    trailsAux(Y, (X:V), T).
-
-  .decl notNull([a]|).
-  notNull((_:_)).
-
-  .decl label(|Int, Int).
-  label(X, L) :-
-    node(X),
-    collect (Ts) : trails(X, Ts),
-    notNull(Ts),
-    ext (T) : maximum(Ts),
-    notNull(T),
-    ext (L) : maximum(T).
-
-  .decl wcc(|Int, [Int]).
-  wcc(L, Xs) :-
-    node(L),
-    collect (Xs) : label(Xs, L),
-    notNull(Xs).
-|]
+-- [hp|
+--   .decl node(|Int).
+--   node(1).
+--   node(2).
+--   node(3).
+--   node(4).
+--   node(5).
+--   node(6).
+--   node(7).
+--
+--   .decl edge(|Int, Int).
+--   edge(1, 2).
+--   edge(2, 3).
+--   edge(3, 4).
+--   edge(1, 3).
+--   edge(1, 4).
+--   edge(5, 6).
+--   edge(6, 7).
+--   edge(5, 7).
+--
+--   .decl uedge(|Int, Int).
+--   uedge(X, Y) :- edge(X, Y).
+--   uedge(X, Y) :- edge(Y, X).
+--
+--   .decl ues(|[Int],[Int]).
+--   ues(Fs, Ts) :-
+--     collect (Ts, Fs) : uedge(Fs, Ts).
+--
+--   .decl trails(Int | [Int]).
+--   trails(X, T) :-
+--     trailsAux(X, [], T).
+--
+--   .decl el([a], a|).
+--   el((X:_), X).
+--   el((_:L), X) :- el(L, X).
+--
+--   .decl notEl([a], a|).
+--   notEl([], _).
+--   notEl((H:T), X) :-
+--     H != X,
+--     notEl(T, X).
+--
+--   .decl trailsAux(Int, [Int] | [Int]).
+--   trailsAux(X, V, VR) :-
+--     once () : el(V, X),
+--     ext (VR) : reverse(V).
+--   trailsAux(X, V, T) :-
+--     once () : notEl(V, X),
+--     uedge(X, Y),
+--     trailsAux(Y, (X:V), T).
+--
+--   .decl notNull([a]|).
+--   notNull((_:_)).
+--
+--   .decl label(|Int, Int).
+--   label(X, L) :-
+--     node(X),
+--     collect (Ts) : trails(X, Ts),
+--     notNull(Ts),
+--     ext (T) : maximum(Ts),
+--     notNull(T),
+--     ext (L) : maximum(T).
+--
+--   .decl wcc(|Int, [Int]).
+--   wcc(L, Xs) :-
+--     node(L),
+--     collect (Xs) : label(Xs, L),
+--     notNull(Xs).
+-- |]
 {-  -}
 
 
@@ -155,33 +159,43 @@ sumid xs = (xs, sum xs)
 |]
 
 
+-- [hp|
+-- .decl maxim[Ord(a)]([a] | a).
+-- maxim((H:T), M) :-
+--   maximAux(T, H, M).
+--
+-- .decl maximAux[Ord(a)]([a], a | a).
+-- maximAux([], M, M).
+-- maximAux((H:T), CM, M) :-
+--   H < CM,
+--   maximAux(T, CM, M).
+-- maximAux((H:T), CM, M) :-
+--   H >= CM,
+--   maximAux(T, H, M).
+--
+-- .decl x[Ord(a), Eq(a)](a | a).
+-- x(A, A).
+-- |]
+--
+-- [hp|
+-- .decl cumsum[Num(a)]([a] | [a]).
+-- cumsum([], []).
+-- cumsum((H:T), S) :- 
+--   cumsumAux(T, H, S).
+--
+-- .decl cumsumAux[Num(a)]([a], a | [a]).
+-- cumsumAux([], S, [S]).
+-- cumsumAux((H:T), S, (S:ST)) :-
+--   S1 is S + H,
+--   cumsumAux(T, S1, ST).
+-- |]
+
 [hp|
-.decl maxim[Ord(a)]([a] | a).
-maxim((H:T), M) :-
-  maximAux(T, H, M).
-
-.decl maximAux[Ord(a)]([a], a | a).
-maximAux([], M, M).
-maximAux((H:T), CM, M) :-
-  H < CM,
-  maximAux(T, CM, M).
-maximAux((H:T), CM, M) :-
-  H >= CM,
-  maximAux(T, H, M).
-
-.decl x[Ord(a), Eq(a)](a | a).
-x(A, A).
-|]
-
-[hp|
-  .decl cumsum[Num(a)]([a] | [a]).
-  cumsum([], []).
-  cumsum((H:T), S) :- 
-    cumsumAux(T, H, S).
-
-  .decl cumsumAux[Num(a)]([a], a | [a]).
-  cumsumAux([], S, [S]).
-  cumsumAux((H:T), S, (S:ST)) :-
-    S1 is S + H,
-    cumsumAux(T, S1, ST).
+  .decl x(Int|Int).
+  x(X, Y) :-
+    Z = 1,
+    ( X > 5 -> Z = 1, Q = X
+    ; Z = 0, Q = 5, R = 1
+    ),
+    Y is Z * Q.
 |]

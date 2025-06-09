@@ -30,6 +30,7 @@ transProgram x = case x of
 transDef :: Show a => Abs.Def' a -> Result
 transDef x = case x of
   Abs.TDef _ lident typeargs1 typeargs2 -> failure x
+  Abs.TGDef _ lident constrs typeargs1 typeargs2 -> failure x
   Abs.DFact _ declheader -> failure x
   Abs.DRule _ declheader stmts -> failure x
 
@@ -40,6 +41,14 @@ transTypeArg x = case x of
   Abs.TAList _ typearg -> failure x
   Abs.TATup _ typeargs -> failure x
   Abs.TAApp _ typearg typeargs -> failure x
+
+transConstr :: Show a => Abs.Constr' a -> Result
+transConstr x = case x of
+  Abs.Constr _ uident constrvars -> failure x
+
+transConstrVar :: Show a => Abs.ConstrVar' a -> Result
+transConstrVar x = case x of
+  Abs.ConstrVar _ lident -> failure x
 
 transDeclHeader :: Show a => Abs.DeclHeader' a -> Result
 transDeclHeader x = case x of
